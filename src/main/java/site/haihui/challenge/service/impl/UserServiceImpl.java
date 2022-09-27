@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 import site.haihui.challenge.common.auth.UserContext;
+import site.haihui.challenge.common.constant.CoinSource;
 import site.haihui.challenge.common.constant.Config;
-import site.haihui.challenge.constant.CoinSource;
 import site.haihui.challenge.dto.WeixinLoginDTO;
 import site.haihui.challenge.dto.weixin.WeixinDecryptData;
 import site.haihui.challenge.entity.Round;

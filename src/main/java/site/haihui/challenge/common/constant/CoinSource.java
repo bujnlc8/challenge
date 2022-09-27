@@ -1,4 +1,4 @@
-package site.haihui.challenge.constant;
+package site.haihui.challenge.common.constant;
 
 public class CoinSource {
 
@@ -22,6 +22,12 @@ public class CoinSource {
 
     public static final Integer TEN_K = 10;
 
+    public static final Integer FIVE_CONTINUE = 11;
+
+    public static final Integer TEN_CONTINUE = 12;
+
+    public static final Integer TWENTY_CONTINUE = 13;
+
     public static String getSourceText(Integer source) {
         switch (source) {
             case 1:
@@ -44,6 +50,12 @@ public class CoinSource {
                 return "单轮满5k";
             case 10:
                 return "单轮满1w";
+            case 11:
+                return "连对5题";
+            case 12:
+                return "连对10题";
+            case 13:
+                return "连对20题";
         }
         return "";
     }
@@ -68,6 +80,12 @@ public class CoinSource {
                 return 500;
             case 10:
                 return 1000;
+            case 11:
+                return 500;
+            case 12:
+                return 1000;
+            case 13:
+                return 5000;
         }
         return 0;
     }

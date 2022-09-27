@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import site.haihui.challenge.common.constant.CoinSource;
 import site.haihui.challenge.common.exception.CommonException;
-import site.haihui.challenge.constant.CoinSource;
 import site.haihui.challenge.entity.CoinRecord;
 import site.haihui.challenge.mapper.CoinRecordMapper;
 import site.haihui.challenge.service.ICoinRecordService;
@@ -51,6 +51,8 @@ public class CoinRecordServiceImpl extends ServiceImpl<CoinRecordMapper, CoinRec
 
     private String roundReliveTimes = "%s:%s:roundReliveTimes";
 
+    private String roundUsedRelive = "%s:%s:usedRelive";
+
     @Override
     public boolean operateCoin(Integer uid, Integer source, Integer roundId, Integer amount) {
         String key = uid + ":operateCoin";
@@ -76,6 +78,9 @@ public class CoinRecordServiceImpl extends ServiceImpl<CoinRecordMapper, CoinRec
             }
             String key1 = String.format(roundReliveTimes, uid, roundId);
             redisService.decrement(key1, 1);
+            // 设置曾经复活过
+            String key2 = String.format(roundUsedRelive, uid, roundId);
+            redisService.set(key2, 1, 24 * 3600);
         }
         CoinRecord coinRecord = new CoinRecord();
         coinRecord.setUid(uid);

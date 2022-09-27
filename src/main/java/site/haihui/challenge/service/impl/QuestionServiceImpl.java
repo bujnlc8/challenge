@@ -13,10 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import site.haihui.challenge.common.constant.CoinSource;
 import site.haihui.challenge.common.constant.Config;
 import site.haihui.challenge.common.exception.BadRequestException;
 import site.haihui.challenge.common.exception.CommonException;
-import site.haihui.challenge.constant.CoinSource;
 import site.haihui.challenge.entity.Question;
 import site.haihui.challenge.entity.Round;
 import site.haihui.challenge.entity.RoundDetail;
@@ -87,6 +87,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     private IRedisService<Integer> redisServiceInt;
 
     private String roundReliveTimes = "%s:%s:roundReliveTimes";
+
+    private String roundUsedRelive = "%s:%s:usedRelive";
 
     @Override
     public QuestionListVO challengeQuestion(Integer uid, Integer roundId, Integer questionId) {
@@ -249,6 +251,19 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 } else if (round.getScore() < 10000 && (round.getScore() + score) >= 10000) {
                     toast = "恭喜你，本轮得分超过10000，额外送你1000百科币！";
                     coinRecordService.operateCoin(uid, CoinSource.TEN_K, roundId, 0);
+                }
+                // 本轮没有复活过
+                if (null == redisServiceInt.get(String.format(roundUsedRelive, uid, roundId))) {
+                    if (round.getCorrectQuestion() == 4) {
+                        toast = "恭喜你，本轮已连续答对5题，送你500百科币！";
+                        coinRecordService.operateCoin(uid, CoinSource.FIVE_CONTINUE, roundId, 0);
+                    } else if (round.getCorrectQuestion() == 9) {
+                        toast = "恭喜你，本轮已连续答对10题，送你1000百科币！";
+                        coinRecordService.operateCoin(uid, CoinSource.TEN_CONTINUE, roundId, 0);
+                    } else if (round.getCorrectQuestion() == 19) {
+                        toast = "恭喜你，本轮已连续答对20题，送你5000百科币！";
+                        coinRecordService.operateCoin(uid, CoinSource.TWENTY_CONTINUE, roundId, 0);
+                    }
                 }
                 round.setScore(round.getScore() + score);
                 round.setUpdateTime(now);
