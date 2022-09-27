@@ -13,4 +13,4 @@ release:
 	docker push  yy194131/challenge:$(tag)
 
 deploy: release
-	ssh roselle bash start_challenge.sh $(tag)
+	ssh roselle bash challenge/start_challenge.sh $(tag)
