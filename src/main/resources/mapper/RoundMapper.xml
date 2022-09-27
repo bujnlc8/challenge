@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.haihui.challenge.mapper.RoundMapper">
+
+    <select id="getCurrentWeekRoundRankList" resultType="site.haihui.challenge.entity.Round">
+        select * from (
+        select * from `round` 
+        <if test="param1 != null">
+            where create_time between #{start} and #{end}
+        </if>
+        <if test="param1 == null">
+            where score >= 2000
+        </if>
+         order by score desc limit 1000000) as a group by uid order by score desc,create_time limit 100
+    </select>
+
+</mapper>
