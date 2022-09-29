@@ -162,7 +162,7 @@ public class CoinRecordServiceImpl extends ServiceImpl<CoinRecordMapper, CoinRec
             String totalCacheKey = getTotalCacheKey(uid);
             redisService.set(totalCacheKey, coin);
         }
-        if (coin > 20000 && coin < 50000) {
+        if (coin > 10000 && coin < 50000) {
             return 1;
         } else if (coin >= 50000 && coin < 100000) {
             return 2;
@@ -196,6 +196,6 @@ public class CoinRecordServiceImpl extends ServiceImpl<CoinRecordMapper, CoinRec
         } else if (grade == 1) {
             return 50000 - coin;
         }
-        return 20000 - coin;
+        return 10000 - coin;
     }
 }

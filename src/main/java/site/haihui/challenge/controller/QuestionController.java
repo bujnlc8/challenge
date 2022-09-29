@@ -93,6 +93,16 @@ public class QuestionController {
         return ResponseResult.success(res);
     }
 
+    @PostMapping("/delete-wrong-question")
+    @LoginRequire
+    public ResponseResult<Object> actionDeleteWrongQuestionA(
+            @RequestParam Integer id) {
+        boolean delete = questionService.deleteWrongQuestion(UserContext.getCurrentUser().getId(), id);
+        Map<String, Boolean> res = new HashMap<>();
+        res.put("result", delete);
+        return ResponseResult.success(res);
+    }
+
     @PostMapping("/hide")
     @LoginRequire
     public ResponseResult<Object> actionHideQuestion(

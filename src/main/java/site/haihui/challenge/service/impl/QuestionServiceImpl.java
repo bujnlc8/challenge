@@ -346,6 +346,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             vo.setNickname(user.getNickname());
             vo.setAvatarUrl(user.getAvatar());
             vo.setUid(user.getId());
+            vo.setGrade(coinRecordService.getGrade(round.getUid()));
             rankingVOs.add(vo);
         }
         res.setList(rankingVOs);

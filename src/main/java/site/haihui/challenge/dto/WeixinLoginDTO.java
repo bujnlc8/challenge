@@ -25,4 +25,6 @@ public class WeixinLoginDTO extends BaseDTO {
      * wx.getUserInfo 接口返回encryptedData 字段
      */
     private String encryptedData;
+
+    private Integer appType = 1;
 }

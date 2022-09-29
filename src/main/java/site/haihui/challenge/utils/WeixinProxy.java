@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import lombok.extern.slf4j.Slf4j;
+import site.haihui.challenge.common.constant.AppType;
 import site.haihui.challenge.common.constant.Config;
 import site.haihui.challenge.common.exception.BaseException;
 import site.haihui.challenge.dto.weixin.AccessTokenResponse;
@@ -60,6 +61,13 @@ public class WeixinProxy {
 
     private static final String MiniMessageUrl = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token={accessToken}";
 
+    public static String makeUrl(String url, AppType appType) {
+        if (appType.equals(AppType.WXMINIAPP)) {
+            return url;
+        }
+        return url.replace("api.weixin.qq.com", "api.q.qq.com");
+    }
+
     /**
      * code2Session
      *
@@ -70,12 +78,12 @@ public class WeixinProxy {
      * @throws JsonProcessingException
      * @throws JsonMappingException
      */
-    public WeixinCode2Session code2Session(String code, String appId, String appSecret) {
+    public WeixinCode2Session code2Session(String code, String appId, String appSecret, AppType appType) {
         Map<String, String> requestMap = new HashMap<>();
         requestMap.put("appId", appId);
         requestMap.put("appSecret", appSecret);
         requestMap.put("code", code);
-        ResponseEntity<WeixinCode2Session> responseEntity = restTemplate.getForEntity(Code2SessionUrl,
+        ResponseEntity<WeixinCode2Session> responseEntity = restTemplate.getForEntity(makeUrl(Code2SessionUrl, appType),
                 WeixinCode2Session.class, requestMap);
         log.info("responseEntity body: {}", responseEntity.getBody());
         return responseEntity.getBody();
@@ -155,8 +163,8 @@ public class WeixinProxy {
      * @throws JsonMappingException
      */
     public WeixinDecryptData getWeixinDecryptData(String code, String encryptedData, String iv, String appId,
-            String appSecret) throws JsonMappingException, JsonProcessingException, BaseException {
-        WeixinCode2Session weixinCode2Session = code2Session(code, appId, appSecret);
+            String appSecret, AppType appType) throws JsonMappingException, JsonProcessingException, BaseException {
+        WeixinCode2Session weixinCode2Session = code2Session(code, appId, appSecret, appType);
         if (null == weixinCode2Session
                 || (null != weixinCode2Session.getErrcode() && weixinCode2Session.getErrcode() != 0)) {
             Config.ResponseStatus responseStatus = Config.ResponseStatus.WeixinCode2SessionErr;
@@ -170,15 +178,16 @@ public class WeixinProxy {
         return decryptData;
     }
 
-    public String getAccessToken(String appId, String appSecret) {
-        String cached = redisService.get("cached_access_token");
+    public String getAccessToken(String appId, String appSecret, AppType appType) {
+        String key = String.format("cached_access_token:%s", appType.getAppType());
+        String cached = redisService.get(key);
         if (null != cached && !cached.isEmpty()) {
             return cached;
         }
         Map<String, String> requestMap = new HashMap<>();
         requestMap.put("appId", appId);
         requestMap.put("appSecret", appSecret);
-        ResponseEntity<AccessTokenResponse> responseEntity = restTemplate.getForEntity(AccessTokenUrl,
+        ResponseEntity<AccessTokenResponse> responseEntity = restTemplate.getForEntity(makeUrl(AccessTokenUrl, appType),
                 AccessTokenResponse.class, requestMap);
         log.info("responseEntity body: {}", responseEntity.getBody());
         AccessTokenResponse accessTokenResponse = responseEntity.getBody();
@@ -187,7 +196,7 @@ public class WeixinProxy {
         }
         String accessToken = accessTokenResponse.getAccessToken();
         // 缓存accessToken
-        redisService.set("cached_access_token", accessToken, accessTokenResponse.getExpiresIn() - 200);
+        redisService.set(key, accessToken, accessTokenResponse.getExpiresIn() - 200);
         return accessToken;
     }
 

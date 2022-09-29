@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 import site.haihui.challenge.common.auth.UserContext;
+import site.haihui.challenge.common.constant.AppType;
 import site.haihui.challenge.common.constant.CoinSource;
-import site.haihui.challenge.common.constant.Config;
 import site.haihui.challenge.dto.WeixinLoginDTO;
 import site.haihui.challenge.dto.weixin.WeixinDecryptData;
 import site.haihui.challenge.entity.Round;
@@ -66,11 +66,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public WeixinLoginResponseVO loginByWeixin(WeixinLoginDTO weixinLoginDTO)
             throws JsonProcessingException {
-        WeixinDecryptData weixinDecryptData = Weixin.getWeixin().getWeixinDecryptData(
-                weixinLoginDTO.getCode(),
-                weixinLoginDTO.getEncryptedData(), weixinLoginDTO.getIv());
+        WeixinDecryptData weixinDecryptData = Weixin.getWeixin(AppType.getAppType(weixinLoginDTO.getAppType()))
+                .getWeixinDecryptData(
+                        weixinLoginDTO.getCode(),
+                        weixinLoginDTO.getEncryptedData(), weixinLoginDTO.getIv());
         log.info("DecryptData: {}", weixinDecryptData);
-        Integer appType = Config.AppType.WXMINIAPP.getAppType();
+        Integer appType = weixinLoginDTO.getAppType();
         User user = getUserByOpenId(weixinDecryptData.getOpenId(), appType);
         Date now = new Date();
         if (null == user) {
@@ -90,7 +91,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             // 加币
             coinRecordService.operateCoin(user.getId(), CoinSource.NEW_USER, 0, 0);
         } else {
-            if (user.getAvatar().startsWith("https://thirdwx.qlogo.cn")) {
+            if (user.getAvatar().startsWith("https://thirdwx.qlogo.cn")
+                    || user.getAvatar().startsWith("https://thirdqq.qlogo.cn")) {
                 user.setAvatar(weixinDecryptData.getAvatarUrl());
                 user.setNickname(weixinDecryptData.getNickName());
                 userMapper.updateById(user);

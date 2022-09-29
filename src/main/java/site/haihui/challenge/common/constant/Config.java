@@ -19,15 +19,4 @@ public class Config {
 
         private final String description;
     }
-
-    @Getter
-    @AllArgsConstructor
-    public enum AppType {
-
-        WXMINIAPP(1, "微信小程序");
-
-        private final Integer appType;
-
-        private final String remark;
-    }
 }

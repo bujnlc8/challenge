@@ -16,4 +16,6 @@ public class RankingVO implements Serializable {
     private Integer totalScore;
 
     private Integer totalQuestion;
+
+    private Integer grade;
 }
