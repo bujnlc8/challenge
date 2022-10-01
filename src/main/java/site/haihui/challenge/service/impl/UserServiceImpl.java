@@ -27,6 +27,7 @@ import site.haihui.challenge.service.ICoinRecordService;
 import site.haihui.challenge.service.IRedisService;
 import site.haihui.challenge.service.IShareService;
 import site.haihui.challenge.service.IUserService;
+import site.haihui.challenge.utils.Alipay;
 import site.haihui.challenge.utils.Numbers;
 import site.haihui.challenge.utils.StringUtils;
 import site.haihui.challenge.utils.Weixin;
@@ -63,13 +64,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Autowired
     private ICoinRecordService coinRecordService;
 
+    @Autowired
+    private Alipay alipay;
+
     @Override
     public WeixinLoginResponseVO loginByWeixin(WeixinLoginDTO weixinLoginDTO)
             throws JsonProcessingException {
-        WeixinDecryptData weixinDecryptData = Weixin.getWeixin(AppType.getAppType(weixinLoginDTO.getAppType()))
-                .getWeixinDecryptData(
-                        weixinLoginDTO.getCode(),
-                        weixinLoginDTO.getEncryptedData(), weixinLoginDTO.getIv());
+        WeixinDecryptData weixinDecryptData;
+        if (!weixinLoginDTO.getAppType().equals(AppType.ALIPAY.getAppType())) {
+            weixinDecryptData = Weixin.getWeixin(AppType.getAppType(weixinLoginDTO.getAppType()))
+                    .getWeixinDecryptData(
+                            weixinLoginDTO.getCode(),
+                            weixinLoginDTO.getEncryptedData(), weixinLoginDTO.getIv());
+        } else {
+            weixinDecryptData = alipay.getAlipayUserInfo(weixinLoginDTO.getCode());
+        }
         log.info("DecryptData: {}", weixinDecryptData);
         Integer appType = weixinLoginDTO.getAppType();
         User user = getUserByOpenId(weixinDecryptData.getOpenId(), appType);

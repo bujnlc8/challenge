@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum AppType {
 
-    WXMINIAPP(1, "微信小程序"), QQMINIAPP(2, "QQ小程序");
+    WXMINIAPP(1, "微信小程序"), QQMINIAPP(2, "QQ小程序"), ALIPAY(3, "支付宝小程序");
 
     private final Integer appType;
 
