@@ -343,8 +343,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             vo.setTotalScore(round.getScore());
             vo.setTotalQuestion(round.getCorrectQuestion());
             User user = userMapper.selectById(round.getUid());
-            vo.setNickname(user.getNickname());
-            vo.setAvatarUrl(user.getAvatar());
+            vo.setNickname(user.getShowNickname());
+            vo.setAvatarUrl(user.getShowAvatar());
             vo.setUid(user.getId());
             vo.setGrade(coinRecordService.getGrade(round.getUid()));
             rankingVOs.add(vo);

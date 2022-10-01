@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 
 import lombok.Data;
+import site.haihui.challenge.common.constant.Config;
+import site.haihui.challenge.utils.StringUtils;
 
 /**
  * <p>
@@ -43,4 +45,18 @@ public class User implements Serializable {
     private Date createTime;
 
     private Date updateTime;
+
+    public String getShowAvatar() {
+        if (StringUtils.isBlank(this.avatar)) {
+            return Config.DEFAULT_AVATAR;
+        }
+        return this.avatar;
+    }
+
+    public String getShowNickname() {
+        if (StringUtils.isBlank(this.nickname)) {
+            return Config.DEFAULT_NAME;
+        }
+        return this.nickname;
+    }
 }

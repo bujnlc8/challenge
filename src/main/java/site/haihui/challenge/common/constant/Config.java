@@ -7,6 +7,10 @@ public class Config {
 
     public static final Integer COUNT_DOWN = 30;
 
+    public static final String DEFAULT_AVATAR = "https://bucket-1256650966.cos.ap-beijing.myqcloud.com/challenge/default_avatar.png";
+
+    public static final String DEFAULT_NAME = "神秘用户";
+
     @Getter
     @AllArgsConstructor
     public enum ResponseStatus {
