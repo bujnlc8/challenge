@@ -5,6 +5,7 @@ import java.util.Date;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.Data;
 import site.haihui.challenge.common.constant.Config;
@@ -19,6 +20,7 @@ import site.haihui.challenge.utils.StringUtils;
  * @since 2022-09-17
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;

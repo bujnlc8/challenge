@@ -36,7 +36,7 @@ public class ShareServiceImpl implements IShareService {
 
     public static String userTotalQuestionKey = "%s:userTotalQuestionKey"; // 回答总数
 
-    public static String userCacheKey = "%s:userCacheKey"; // 用户信息缓存
+    public static String userCacheKey = "%s:userCacheKeyNew"; // 用户信息缓存
 
     public static String userSimpleQuestionCacheKey = "%s:userSimpleQuestionCacheKey"; // 跳过题
 
