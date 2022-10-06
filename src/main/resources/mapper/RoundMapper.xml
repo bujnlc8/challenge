@@ -6,7 +6,7 @@
         select * from (
         select * from `round` 
         <if test="param1 != null">
-            where create_time between #{start} and #{end}
+            where create_time between #{start} and #{end} and score > 0
         </if>
         <if test="param1 == null">
             where score >= 2000
