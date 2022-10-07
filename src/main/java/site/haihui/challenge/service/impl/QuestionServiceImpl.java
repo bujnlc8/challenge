@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import site.haihui.challenge.common.auth.UserContext;
 import site.haihui.challenge.common.constant.CoinSource;
 import site.haihui.challenge.common.constant.Config;
 import site.haihui.challenge.common.exception.BadRequestException;
@@ -25,7 +27,6 @@ import site.haihui.challenge.entity.WrongQuestionBook;
 import site.haihui.challenge.mapper.QuestionMapper;
 import site.haihui.challenge.mapper.RoundDetailMapper;
 import site.haihui.challenge.mapper.RoundMapper;
-import site.haihui.challenge.mapper.UserMapper;
 import site.haihui.challenge.mapper.WrongQuestionBookMapper;
 import site.haihui.challenge.service.ICoinRecordService;
 import site.haihui.challenge.service.IQuestionService;
@@ -64,9 +65,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     private RoundDetailMapper roundDetailMapper;
 
     @Autowired
-    private UserMapper userMapper;
-
-    @Autowired
     private WrongQuestionBookMapper wrongQuestionBookMapper;
 
     @Autowired
@@ -90,8 +88,12 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     private String roundUsedRelive = "%s:%s:usedRelive";
 
+    private String zSetRankKey = "rankkey";
+
+    private String zSetWeekRankKey = "rankkey:%s";
+
     @Override
-    public QuestionListVO challengeQuestion(Integer uid, Integer roundId, Integer questionId) {
+    public QuestionListVO challengeQuestion(Integer uid, Integer roundId, Integer questionId, Integer category) {
         Round round;
         List<Question> questions = new ArrayList<>();
         if (!Numbers.isBlank(roundId)) {
@@ -111,7 +113,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             setRoundReliveTimesCache(uid, round.getId());
         }
         if (questions.size() == 0) {
-            questions = getRandomTenQuestions();
+            questions = getRandomTenQuestions(category);
         }
         List<QuestionVO> questionVOs = new ArrayList<>();
         Integer index = 0;
@@ -181,10 +183,13 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return round;
     }
 
-    private List<Question> getRandomTenQuestions() {
+    private List<Question> getRandomTenQuestions(Integer category) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("status", 1);
-        queryWrapper.last("order by rand() limit 20");
+        if (!Numbers.isBlank(category)) {
+            queryWrapper.eq("category", category);
+        }
+        queryWrapper.last("order by rand() limit 100");
         return questionMapper.selectList(queryWrapper);
     }
 
@@ -304,9 +309,24 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             insertWrongQuestionBook(uid, questionId, answer);
         }
         // 设置用户最高分
-        if (round.getScore() > shareService.getUserMaxScore(uid)) {
-            shareService.setUserMaxScore(uid, round.getScore());
+        if (round.getScore() > shareService.getUserMaxScore(uid, 2)) {
+            shareService.setUserMaxScore(uid, round.getScore(), 2);
+            // 加入全部排名
+            redisService.addZSet(zSetRankKey, round.getScore().doubleValue(), round);
+            shareService.setUserMaxScoreRound(uid, round, 11);
         }
+        // 设置本周最高分
+        if (round.getScore() > shareService.getUserMaxScore(uid, 10)) {
+            shareService.setUserMaxScore(uid, round.getScore(), 10);
+            // 加入本周排名
+            redisService.addZSet(String.format(zSetWeekRankKey, Time.getCurrentWeekOfYear()),
+                    round.getScore().doubleValue(), round);
+            shareService.setUserMaxScoreRound(uid, round, 12);
+        }
+        // 设置排名
+        Integer rank = redisService.countZSet(String.format(zSetWeekRankKey, Time.getCurrentWeekOfYear()),
+                round.getScore().doubleValue(), 1000000D).intValue();
+        res.setRank(Numbers.isBlank(rank) ? 1 : rank + 1);
         // 增加答题总数
         shareService.incrCachedQuestionNum(uid, 1);
         redisLock.unlock(cacheKey, token);
@@ -325,24 +345,52 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     @Override
     public RankingListVO getRankingList(Integer type) {
         RankingListVO res = new RankingListVO();
-        List<RankingVO> cachedData = (List<RankingVO>) redisService.get("rankingVOs" + type);
+        Integer uid = 0;
+        if (null != UserContext.getCurrentUser()) {
+            uid = UserContext.getCurrentUser().getId();
+        }
+        RankingListVO cachedData = (RankingListVO) redisService
+                .get("rankingVOs1" + type + (Numbers.isBlank(uid) ? 0 : 1));
         if (null != cachedData) {
-            res.setList(cachedData);
+            res = cachedData;
             res.setResetSeconds((int) (Time.getWeekEndDate().getTime() / 1000L - Time.currentTimeSeconds()));
             return res;
         }
         List<Round> list;
         if (type == 0) {
-            list = getCurrentWeekRoundRankList();
+            String key = String.format(zSetWeekRankKey, Time.getCurrentWeekOfYear());
+            Long count = redisService.countZSet(key, 0D, 1000000D);
+            if (null == count || count == 0) {
+                list = getCurrentWeekRoundRankList();
+                for (Round round : list) {
+                    redisService.addZSet(key, round.getScore().doubleValue(), round);
+                    shareService.setUserMaxScoreRound(round.getUid(), round, 12);
+                    shareService.setUserMaxScore(round.getUid(), round.getScore(), 10);
+                }
+            } else {
+                list = redisService.getZSetRevRange(key, 0, 100).stream().map(e -> (Round) e)
+                        .collect(Collectors.toList());
+            }
         } else {
-            list = getTotalRoundRankList();
+            Long count = redisService.countZSet(zSetRankKey, 0D, 1000000D);
+            if (null == count || count == 0) {
+                list = getTotalRoundRankList();
+                for (Round round : list) {
+                    redisService.addZSet(zSetRankKey, round.getScore().doubleValue(), round);
+                    shareService.setUserMaxScoreRound(round.getUid(), round, 11);
+                }
+            } else {
+                list = redisService.getZSetRevRange(zSetRankKey, 0, 100).stream().map(e -> (Round) e)
+                        .filter(e -> e.getScore() >= 2000)
+                        .collect(Collectors.toList());
+            }
         }
         List<RankingVO> rankingVOs = new ArrayList<>();
         for (Round round : list) {
             RankingVO vo = new RankingVO();
             vo.setTotalScore(round.getScore());
             vo.setTotalQuestion(round.getCorrectQuestion());
-            User user = userMapper.selectById(round.getUid());
+            User user = shareService.getUser(round.getUid());
             vo.setNickname(user.getShowNickname());
             vo.setAvatarUrl(user.getShowAvatar());
             vo.setUid(user.getId());
@@ -351,7 +399,40 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         res.setList(rankingVOs);
         res.setResetSeconds((int) (Time.getWeekEndDate().getTime() / 1000L - Time.currentTimeSeconds()));
-        redisService.set("rankingVOs" + type, rankingVOs, 60);
+        // 设置我的排名
+        Integer rank = 0;
+        Round r = null;
+        if (type == 0) {
+            rank = redisService.countZSet(String.format(zSetWeekRankKey, Time.getCurrentWeekOfYear()),
+                    shareService.getUserMaxScore(uid, 10).doubleValue(), 1000000D).intValue();
+            if (uid > 0) {
+                r = shareService.getUserMaxScoreRound(uid, 12);
+            }
+        } else {
+            rank = redisService.countZSet(zSetRankKey, shareService.getUserMaxScore(uid, 2).doubleValue(), 1000000D)
+                    .intValue();
+            if (uid > 0) {
+                r = shareService.getUserMaxScoreRound(uid, 11);
+            }
+        }
+        RankingVO mine = new RankingVO();
+        mine.setUid(uid);
+        mine.setGrade(coinRecordService.getGrade(uid));
+        User user = UserContext.getCurrentUser();
+        if (null != user) {
+            mine.setNickname(user.getShowNickname());
+            mine.setAvatarUrl(user.getShowAvatar());
+        }
+        if (null != r) {
+            mine.setTotalScore(r.getScore());
+            mine.setTotalQuestion(r.getCorrectQuestion());
+        } else {
+            mine.setTotalScore(-1);
+            mine.setTotalQuestion(0);
+        }
+        res.setMine(mine);
+        res.setRank(Numbers.isBlank(rank) ? 999 : rank);
+        redisService.set("rankingVOs1" + type + (Numbers.isBlank(uid) ? 0 : 1), res, 30);
         return res;
     }
 
@@ -464,14 +545,14 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     }
 
     @Override
-    public QuestionListVO trainingQuestions(Integer uid) {
+    public QuestionListVO trainingQuestions(Integer uid, Integer category) {
         if (redisService.sSize(shareService.getCacheKey(uid, 7)) >= 200
                 || redisService.sSize(shareService.getCacheKey(uid, 8)) >= 400) {
             if (!isVipUser(uid)) {
                 throw new CommonException("今日已超限");
             }
         }
-        List<Question> questions = getRandomTenQuestions();
+        List<Question> questions = getRandomTenQuestions(category);
         List<QuestionVO> questionVOs = new ArrayList<>();
         Integer index = 0;
         for (Question question : questions) {
@@ -479,13 +560,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             if (shareService.isQuesetionSet(uid, question.getId(), 4)) {
                 continue;
             }
-            QuestionVO vo = new QuestionVO();
-            vo.setId(question.getId());
-            vo.setLevel(question.getLevel());
-            vo.setContent(question.getContent());
-            vo.setOptions(question.getOptions());
-            vo.setCategory(question.getCategory());
-            questionVOs.add(vo);
+            questionVOs.add(transData(question, uid));
             // 缓存题目
             putQuestionCache(question);
             shareService.putQuestionSet(uid, question.getId(), 8);
@@ -494,10 +569,28 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 break;
             }
         }
+        // 如果没有题目返回，返回第一个
+        if (index == 0) {
+            Question question = questions.get(0);
+            questionVOs.add(transData(question, uid));
+        }
         QuestionListVO res = new QuestionListVO();
         res.setList(questionVOs);
         res.setQuestionNum(questionVOs.size());
         return res;
+    }
+
+    private QuestionVO transData(Question question, Integer uid) {
+        QuestionVO vo = new QuestionVO();
+        vo.setId(question.getId());
+        vo.setLevel(question.getLevel());
+        vo.setContent(question.getContent());
+        vo.setOptions(question.getOptions());
+        vo.setCategory(question.getCategory());
+        // 缓存题目
+        putQuestionCache(question);
+        shareService.putQuestionSet(uid, question.getId(), 8);
+        return vo;
     }
 
     @Override

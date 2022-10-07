@@ -1,13 +1,14 @@
 package site.haihui.challenge.service;
 
+import site.haihui.challenge.entity.Round;
 import site.haihui.challenge.entity.User;
 import site.haihui.challenge.vo.CaptchaVO;
 
 public interface IShareService {
 
-    public Integer getUserMaxScore(Integer uid);
+    public Integer getUserMaxScore(Integer uid, Integer type);
 
-    public void setUserMaxScore(Integer uid, Integer score);
+    public void setUserMaxScore(Integer uid, Integer score, Integer type);
 
     public Integer getCachedQuestionNum(Integer uid, Integer type);
 
@@ -36,4 +37,8 @@ public interface IShareService {
     public CaptchaVO getCaptcha();
 
     public boolean feedback(Integer questionId, String token, String captcha, Integer type, String remark);
+
+    public Round getUserMaxScoreRound(Integer uid, Integer type);
+
+    public void setUserMaxScoreRound(Integer uid, Round round, Integer type);
 }

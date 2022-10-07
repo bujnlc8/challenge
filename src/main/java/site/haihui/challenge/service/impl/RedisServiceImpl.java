@@ -1,12 +1,16 @@
 package site.haihui.challenge.service.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import site.haihui.challenge.service.IRedisService;
@@ -101,5 +105,28 @@ public class RedisServiceImpl<T> implements IRedisService<T> {
     @Override
     public Long sSize(String key) {
         return redisTemplate.opsForSet().size(key);
+    }
+
+    @Override
+    public boolean addZSet(String key, Double score, T value) {
+        return redisTemplate.opsForZSet().add(key, value, score);
+    }
+
+    @Override
+    public Long countZSet(String key, Double min, Double max) {
+        return redisTemplate.opsForZSet().count(key, min, max);
+    }
+
+    @Override
+    public List<T> getZSetRevRange(String key, Integer start, Integer stop) {
+        Set<ZSetOperations.TypedTuple<T>> typedTuples = redisTemplate.opsForZSet().reverseRangeWithScores(key, start,
+                stop);
+        Iterator<ZSetOperations.TypedTuple<T>> iterate = typedTuples.iterator();
+        List<T> res = new ArrayList<>();
+        while (iterate.hasNext()) {
+            ZSetOperations.TypedTuple<T> typedTuple = iterate.next();
+            res.add(typedTuple.getValue());
+        }
+        return res;
     }
 }

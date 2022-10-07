@@ -14,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import site.haihui.challenge.common.auth.UserContext;
 import site.haihui.challenge.common.exception.CommonException;
 import site.haihui.challenge.entity.Feedback;
+import site.haihui.challenge.entity.Round;
 import site.haihui.challenge.entity.User;
 import site.haihui.challenge.entity.WrongQuestionBook;
 import site.haihui.challenge.mapper.FeedbackMapper;
@@ -29,6 +30,8 @@ import site.haihui.challenge.vo.IgscVO;
 public class ShareServiceImpl implements IShareService {
 
     public static String userMaxScoreKey = "%s:userMaxScoreKey"; // 最高分
+
+    public static String userMaxScoreRoundKey = "%s:userMaxScoreRoundKey"; // 最高分
 
     public static String userWrongQuestionKey = "%s:userWrongQuestionKey"; // 答错题
 
@@ -49,6 +52,10 @@ public class ShareServiceImpl implements IShareService {
     public static String userTodayTrainingCacheKey = "%s:%s:userTodayTrainingCacheKey"; // 今日训练
 
     public static String userTodayTotalTrainingCacheKey = "%s:%s:userTodayTotalTrainingCacheKey"; // 今日训练请求的题目数
+
+    public static String userCurrentWeekMaxScore = "%s:%s:userCurrentWeekMaxScore";
+
+    public static String userCurrentWeekMaxScoreRound = "%s:%s:userCurrentWeekMaxScoreRound";
 
     @Autowired
     private RestTemplate restTemplate;
@@ -76,15 +83,15 @@ public class ShareServiceImpl implements IShareService {
     private String checkCaptchUrl = "user/check_captcha?open_id={openid}&token={token}&captcha={captcha}";
 
     @Override
-    public Integer getUserMaxScore(Integer uid) {
-        String key = getCacheKey(uid, 2);
+    public Integer getUserMaxScore(Integer uid, Integer type) {
+        String key = getCacheKey(uid, type);
         Integer cachedData = redisService.get(key);
         return cachedData == null ? 0 : cachedData;
     }
 
     @Override
-    public void setUserMaxScore(Integer uid, Integer score) {
-        String key = getCacheKey(uid, 2);
+    public void setUserMaxScore(Integer uid, Integer score, Integer type) {
+        String key = getCacheKey(uid, type);
         redisService.set(key, score);
     }
 
@@ -138,6 +145,12 @@ public class ShareServiceImpl implements IShareService {
         } else if (type == 9) {
             return String.format(userTodayHideTimesCacheKey, uid,
                     Time.timestampToString(Time.currentTimeSeconds().intValue(), "yyyyMMdd"));
+        } else if (type == 10) {
+            return String.format(userCurrentWeekMaxScore, uid, Time.getCurrentWeekOfYear());
+        } else if (type == 11) {
+            return String.format(userMaxScoreRoundKey, uid);
+        } else if (type == 12) {
+            return String.format(userCurrentWeekMaxScoreRound, uid, Time.getCurrentWeekOfYear());
         }
         return "";
     }
@@ -245,5 +258,16 @@ public class ShareServiceImpl implements IShareService {
         feedback.setQuestionId(questionId);
         feedbackMapper.insert(feedback);
         return true;
+    }
+
+    @Override
+    public Round getUserMaxScoreRound(Integer uid, Integer type) {
+        String key = getCacheKey(uid, type);
+        return (Round) redisService2.get(key);
+    }
+
+    @Override
+    public void setUserMaxScoreRound(Integer uid, Round round, Integer type) {
+        redisService2.set(getCacheKey(uid, type), round);
     }
 }

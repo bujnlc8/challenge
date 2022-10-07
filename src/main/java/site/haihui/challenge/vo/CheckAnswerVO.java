@@ -16,4 +16,6 @@ public class CheckAnswerVO implements Serializable {
     private Integer rightAnswer = 0;
 
     private String toast = "";
+
+    private Integer rank = 0;
 }

@@ -20,7 +20,7 @@ import site.haihui.challenge.vo.WrongQuestionVO;
  */
 public interface IQuestionService extends IService<Question> {
 
-    public QuestionListVO challengeQuestion(Integer uid, Integer roundId, Integer questionId);
+    public QuestionListVO challengeQuestion(Integer uid, Integer roundId, Integer questionId, Integer category);
 
     public CheckAnswerVO checkAnswer(Integer uid, Integer roundId, Integer questionId, Integer countDown,
             Integer timeout,
@@ -36,7 +36,7 @@ public interface IQuestionService extends IService<Question> {
 
     public void hideQuestion(Integer uid, Integer id, Integer t);
 
-    public QuestionListVO trainingQuestions(Integer uid);
+    public QuestionListVO trainingQuestions(Integer uid, Integer category);
 
     public CheckAnswerVO checkTrainingQuestion(Integer uid, Integer questionId, Integer answer);
 }

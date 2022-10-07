@@ -186,4 +186,21 @@ public class Time {
         Date date = cal.getTime();
         return date;
     }
+
+    /**
+     * 获取是一年中的第几周
+     * 
+     * @param dt
+     * @return
+     */
+    public static Integer getWeekOfYear(Date dt) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(dt);
+        cal.setFirstDayOfWeek(Calendar.MONDAY);
+        return cal.get(Calendar.WEEK_OF_YEAR);
+    }
+
+    public static Integer getCurrentWeekOfYear() {
+        return getWeekOfYear(new Date());
+    }
 }

@@ -1,6 +1,7 @@
 package site.haihui.challenge.service;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.core.RedisCallback;
@@ -44,4 +45,10 @@ public interface IRedisService<T> {
     Long sSize(String key);
 
     T execute(RedisCallback<T> redisCallback);
+
+    boolean addZSet(String key, Double score, T value);
+
+    Long countZSet(String key, Double min, Double max);
+
+    List<T> getZSetRevRange(String key, Integer start, Integer stop);
 }

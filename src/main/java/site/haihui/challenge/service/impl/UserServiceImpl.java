@@ -136,11 +136,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         res.setAvatar(user.getShowAvatar());
         res.setNickname(user.getShowNickname());
         // 获取最高分
-        Integer maxScore = shareService.getUserMaxScore(uid);
+        Integer maxScore = shareService.getUserMaxScore(uid, 2);
         if (Numbers.isBlank(maxScore)) {
             Round round = getMaxScoreRound(uid);
             maxScore = round == null ? 0 : round.getScore();
-            shareService.setUserMaxScore(uid, maxScore);
+            shareService.setUserMaxScore(uid, maxScore, 2);
         }
         res.setMaxScore(maxScore);
         // 获取答题总数

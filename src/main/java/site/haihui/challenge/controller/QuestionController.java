@@ -41,9 +41,11 @@ public class QuestionController {
     @LoginRequire
     public ResponseResult<QuestionListVO> actionStartChallenge(
             @RequestParam(defaultValue = "0", required = false, value = "round_id") Integer roundId,
+            @RequestParam(defaultValue = "0", required = false) Integer category,
             @RequestParam(defaultValue = "0", required = false, value = "question_id") Integer questionId) {
         return ResponseResult
-                .success(questionService.challengeQuestion(UserContext.getCurrentUser().getId(), roundId, questionId));
+                .success(questionService.challengeQuestion(UserContext.getCurrentUser().getId(), roundId, questionId,
+                        category));
     }
 
     @PostMapping("/check-answer")
@@ -114,9 +116,10 @@ public class QuestionController {
 
     @PostMapping("/training-question")
     @LoginRequire
-    public ResponseResult<QuestionListVO> actionTrainingQuestion() {
+    public ResponseResult<QuestionListVO> actionTrainingQuestion(
+            @RequestParam(defaultValue = "0", required = false) Integer category) {
         return ResponseResult
-                .success(questionService.trainingQuestions(UserContext.getCurrentUser().getId()));
+                .success(questionService.trainingQuestions(UserContext.getCurrentUser().getId(), category));
     }
 
     @PostMapping("/check-training-question")
