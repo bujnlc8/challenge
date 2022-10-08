@@ -426,12 +426,13 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         if (null != r) {
             mine.setTotalScore(r.getScore());
             mine.setTotalQuestion(r.getCorrectQuestion());
+            res.setRank(Numbers.isBlank(rank) ? 999 : rank);
         } else {
             mine.setTotalScore(-1);
             mine.setTotalQuestion(0);
+            res.setRank(Numbers.isBlank(rank) ? 999 : rank + 1);
         }
         res.setMine(mine);
-        res.setRank(Numbers.isBlank(rank) ? 999 : rank);
         redisService.set("rankingVOs1" + type + (Numbers.isBlank(uid) ? 0 : 1), res, 30);
         return res;
     }
