@@ -17,18 +17,12 @@ import site.haihui.challenge.entity.Round;
 import site.haihui.challenge.entity.User;
 import site.haihui.challenge.mapper.RoundMapper;
 import site.haihui.challenge.mapper.UserMapper;
-import site.haihui.challenge.service.IRedisService;
 import site.haihui.challenge.service.IShareService;
 import site.haihui.challenge.utils.RedisLock;
-import site.haihui.challenge.utils.Time;
 
 @Component
 @Slf4j
 public class MockChallengeTask {
-
-    private String zSetRankKey = "rankkey";
-
-    private String zSetWeekRankKey = "rankkey:%s";
 
     @Autowired
     private RoundMapper roundMapper;
@@ -41,9 +35,6 @@ public class MockChallengeTask {
 
     @Autowired
     private IShareService shareService;
-
-    @Autowired
-    private IRedisService<Object> redisService;
 
     private static List<Integer> extraUids = Arrays.asList(1, 3, 40, 53, 54, 69);
 
@@ -80,16 +71,11 @@ public class MockChallengeTask {
         round.setUpdateTime(now);
         roundMapper.insert(round);
         if (round.getScore() > shareService.getUserMaxScore(uid, 2)) {
-            shareService.setUserMaxScore(uid, round.getScore(), 2);
-            // 加入全部排名
-            redisService.addZSet(zSetRankKey, round.getScore().doubleValue(), round);
+            shareService.setRankCache(1, round);
         }
         // 设置本周最高分
         if (round.getScore() > shareService.getUserMaxScore(uid, 10)) {
-            shareService.setUserMaxScore(uid, round.getScore(), 10);
-            // 加入本周排名
-            redisService.addZSet(String.format(zSetWeekRankKey, Time.getCurrentWeekOfYear()),
-                    round.getScore().doubleValue(), round);
+            shareService.setRankCache(0, round);
         }
     }
 

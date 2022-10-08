@@ -57,6 +57,10 @@ public class ShareServiceImpl implements IShareService {
 
     public static String userCurrentWeekMaxScoreRound = "%s:%s:userCurrentWeekMaxScoreRound";
 
+    public static String zSetRankKey = "allrank";
+
+    public static String zSetWeekRankKey = "weekrank:%s";
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -269,5 +273,32 @@ public class ShareServiceImpl implements IShareService {
     @Override
     public void setUserMaxScoreRound(Integer uid, Round round, Integer type) {
         redisService2.set(getCacheKey(uid, type), round);
+    }
+
+    @Override
+    public void setRankCache(Integer type, Round round) {
+        Integer uid = round.getUid();
+        // 周排名
+        if (type == 0) {
+            setUserMaxScore(uid, round.getScore(), 10);
+            Round maxRound = getUserMaxScoreRound(uid, 12);
+            String key = String.format(zSetWeekRankKey, Time.getCurrentWeekOfYear());
+            if (null != maxRound) {
+                redisService2.remZSet(key, maxRound);
+            }
+            redisService2.addZSet(key, round.getScore().doubleValue(), round);
+            setUserMaxScoreRound(uid, round, 12);
+        } else if (type == 1) {// 加入全部排名
+            setUserMaxScore(uid, round.getScore(), 2);
+            Round maxRound = getUserMaxScoreRound(uid, 11);
+            if (null != maxRound) {
+                redisService2.remZSet(zSetRankKey, maxRound);
+            }
+            redisService2.addZSet(zSetRankKey, round.getScore().doubleValue(), round);
+            setUserMaxScoreRound(uid, round, 11);
+        }
+        // 删除排行榜缓存
+        redisService2.delete("rankinglist:0");
+        redisService2.delete("rankinglist:1");
     }
 }

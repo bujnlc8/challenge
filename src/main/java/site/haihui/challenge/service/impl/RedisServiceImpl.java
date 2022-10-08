@@ -129,4 +129,9 @@ public class RedisServiceImpl<T> implements IRedisService<T> {
         }
         return res;
     }
+
+    @Override
+    public Long remZSet(String key, T value) {
+        return redisTemplate.opsForZSet().remove(key, value);
+    }
 }

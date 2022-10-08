@@ -88,9 +88,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     private String roundUsedRelive = "%s:%s:usedRelive";
 
-    private String zSetRankKey = "rankkey";
+    private String zSetRankKey = ShareServiceImpl.zSetRankKey;
 
-    private String zSetWeekRankKey = "rankkey:%s";
+    private String zSetWeekRankKey = ShareServiceImpl.zSetWeekRankKey;
 
     @Override
     public QuestionListVO challengeQuestion(Integer uid, Integer roundId, Integer questionId, Integer category) {
@@ -310,18 +310,11 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         // 设置用户最高分
         if (round.getScore() > shareService.getUserMaxScore(uid, 2)) {
-            shareService.setUserMaxScore(uid, round.getScore(), 2);
-            // 加入全部排名
-            redisService.addZSet(zSetRankKey, round.getScore().doubleValue(), round);
-            shareService.setUserMaxScoreRound(uid, round, 11);
+            shareService.setRankCache(1, round);
         }
         // 设置本周最高分
         if (round.getScore() > shareService.getUserMaxScore(uid, 10)) {
-            shareService.setUserMaxScore(uid, round.getScore(), 10);
-            // 加入本周排名
-            redisService.addZSet(String.format(zSetWeekRankKey, Time.getCurrentWeekOfYear()),
-                    round.getScore().doubleValue(), round);
-            shareService.setUserMaxScoreRound(uid, round, 12);
+            shareService.setRankCache(0, round);
         }
         // 设置排名
         Integer rank = redisService.countZSet(String.format(zSetWeekRankKey, Time.getCurrentWeekOfYear()),
@@ -350,10 +343,12 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             uid = UserContext.getCurrentUser().getId();
         }
         RankingListVO cachedData = (RankingListVO) redisService
-                .get("rankingVOs1" + type + (Numbers.isBlank(uid) ? 0 : 1));
+                .get("rankinglist:" + type);
         if (null != cachedData) {
             res = cachedData;
             res.setResetSeconds((int) (Time.getWeekEndDate().getTime() / 1000L - Time.currentTimeSeconds()));
+            // 设置我的排名
+            setRankExtraData(uid, type, res);
             return res;
         }
         List<Round> list;
@@ -363,9 +358,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             if (null == count || count == 0) {
                 list = getCurrentWeekRoundRankList();
                 for (Round round : list) {
-                    redisService.addZSet(key, round.getScore().doubleValue(), round);
-                    shareService.setUserMaxScoreRound(round.getUid(), round, 12);
-                    shareService.setUserMaxScore(round.getUid(), round.getScore(), 10);
+                    shareService.setRankCache(type, round);
                 }
             } else {
                 list = redisService.getZSetRevRange(key, 0, 100).stream().map(e -> (Round) e)
@@ -376,8 +369,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             if (null == count || count == 0) {
                 list = getTotalRoundRankList();
                 for (Round round : list) {
-                    redisService.addZSet(zSetRankKey, round.getScore().doubleValue(), round);
-                    shareService.setUserMaxScoreRound(round.getUid(), round, 11);
+                    shareService.setRankCache(1, round);
                 }
             } else {
                 list = redisService.getZSetRevRange(zSetRankKey, 0, 100).stream().map(e -> (Round) e)
@@ -400,6 +392,12 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         res.setList(rankingVOs);
         res.setResetSeconds((int) (Time.getWeekEndDate().getTime() / 1000L - Time.currentTimeSeconds()));
         // 设置我的排名
+        setRankExtraData(uid, type, res);
+        redisService.set("rankinglist:" + type, res, 24 * 3600);
+        return res;
+    }
+
+    private void setRankExtraData(Integer uid, Integer type, RankingListVO res) {
         Integer rank = 0;
         Round r = null;
         if (type == 0) {
@@ -433,8 +431,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             res.setRank(Numbers.isBlank(rank) ? 999 : rank + 1);
         }
         res.setMine(mine);
-        redisService.set("rankingVOs1" + type + (Numbers.isBlank(uid) ? 0 : 1), res, 30);
-        return res;
     }
 
     private List<Round> getCurrentWeekRoundRankList() {

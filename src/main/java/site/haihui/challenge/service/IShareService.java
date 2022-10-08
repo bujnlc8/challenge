@@ -41,4 +41,6 @@ public interface IShareService {
     public Round getUserMaxScoreRound(Integer uid, Integer type);
 
     public void setUserMaxScoreRound(Integer uid, Round round, Integer type);
+
+    public void setRankCache(Integer type, Round round);
 }

@@ -51,4 +51,6 @@ public interface IRedisService<T> {
     Long countZSet(String key, Double min, Double max);
 
     List<T> getZSetRevRange(String key, Integer start, Integer stop);
+
+    Long remZSet(String key, T value);
 }
