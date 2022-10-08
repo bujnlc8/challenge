@@ -1,6 +1,7 @@
 package site.haihui.challenge.task;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -44,6 +45,8 @@ public class MockChallengeTask {
     @Autowired
     private IRedisService<Object> redisService;
 
+    private static List<Integer> extraUids = Arrays.asList(1, 3, 40, 53, 54, 69);
+
     @Scheduled(cron = "0 0 * * * *")
     public void run() {
         if (null == redisLock.tryLock("mockChallengeTask:lock", 120 * 1000)) {
@@ -52,8 +55,8 @@ public class MockChallengeTask {
         log.info("Start mockChallengeTask ...");
         List<User> users = getMockUser();
         List<Integer> exist = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            Integer j = getRandomInt(36);
+        for (int i = 0; i < 2; i++) {
+            Integer j = getRandomInt(42);
             if (exist.indexOf(j) == -1) {
                 exist.add(j);
                 insertData(users.get(j).getId());
@@ -64,7 +67,7 @@ public class MockChallengeTask {
 
     private void insertData(Integer uid) {
         Round round = new Round();
-        Integer score = getRandomInt(2500) + 100;
+        Integer score = getRandomInt(2901) + 100;
         Integer correctNum = score / 220 + 1;
         round.setUid(uid);
         round.setScore(score);
@@ -94,6 +97,7 @@ public class MockChallengeTask {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.gt("id", 83);
         queryWrapper.le("id", 119);
+        queryWrapper.or().in("id", extraUids);
         return userMapper.selectList(queryWrapper);
     }
 
