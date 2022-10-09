@@ -58,8 +58,8 @@ public class MockChallengeTask {
 
     private void insertData(Integer uid) {
         Round round = new Round();
-        Integer score = getRandomInt(3000) + 100;
-        Integer correctNum = score / (230 + getRandomInt(300)) + 1;
+        Integer score = getRandomInt(5000) + 200;
+        Integer correctNum = score / (230 + getRandomInt(50)) + 1;
         round.setUid(uid);
         round.setScore(score);
         round.setIsOver(1);
