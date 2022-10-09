@@ -148,15 +148,20 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         res.setList(questionVOs);
         res.setQuestionNum(questionVOs.size());
         // 查询跳过次数
-        Integer lastSkipChance = shareService.getLastSkipChance(uid);
-        if (null == lastSkipChance) {
-            lastSkipChance = 3;
+        Integer skipTimes = shareService.getSkipTimes(uid);
+        Integer userGrade = coinRecordService.getGrade(uid);
+        Integer lastSkipTimes = 0;
+        if (null == skipTimes) {
+            // 跳过次数为等级 + 1
+            lastSkipTimes = 1 + userGrade;
+        } else if (skipTimes <= userGrade) {
+            lastSkipTimes = 1 + userGrade - skipTimes;
         }
-        // 老用户福利
+        // vip福利
         if (isVipUser(uid)) {
-            lastSkipChance = 999;
+            lastSkipTimes = 99;
         }
-        res.setLastSkipChance(lastSkipChance);
+        res.setLastSkipChance(lastSkipTimes);
         // 查询剩余复活次数
         res.setLastReliveTimes(getRoundReliveTime(uid, round.getId()));
         // 答题超时时间
@@ -530,9 +535,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             skipNum += 1;
             redisService.set(key, skipNum);
         } else if (t == 1) {
-            Integer lastSkipChance = shareService.getLastSkipChance(uid);
-            if (null == lastSkipChance || lastSkipChance > 0) {
-                shareService.decreaseLastSkipChance(uid);
+            Integer userGrade = coinRecordService.getGrade(uid);
+            Integer skipTimes = shareService.getSkipTimes(uid);
+            if (null == skipTimes || userGrade >= skipTimes) {
+                shareService.incrSkipTimes(uid);
             } else {
                 if (!isVipUser(uid)) {
                     throw new CommonException("今日跳过次数已用完");

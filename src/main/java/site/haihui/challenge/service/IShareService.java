@@ -24,9 +24,9 @@ public interface IShareService {
 
     public boolean isQuesetionSet(Integer uid, Integer questionId, Integer type);
 
-    public Integer getLastSkipChance(Integer uid);
+    public Integer getSkipTimes(Integer uid);
 
-    public void decreaseLastSkipChance(Integer uid);
+    public void incrSkipTimes(Integer uid);
 
     public Integer getWrongQuestion(Integer uid, Integer status);
 

@@ -43,7 +43,7 @@ public class ShareServiceImpl implements IShareService {
 
     public static String userSimpleQuestionCacheKey = "%s:userSimpleQuestionCacheKey"; // 跳过题
 
-    public static String userTodaySkipTimesCacheKey = "%s:%s:userTodaySkipTimesCacheKey"; // 今日跳过数
+    public static String userTodaySkipTimesCacheKey = "%s:%s:userTodaySkipTimesKey"; // 今日跳过数
 
     public static String userTodayHideTimesCacheKey = "%s:%s:userTodayHideTimesCacheKey"; // 今日隐藏题目
 
@@ -189,21 +189,21 @@ public class ShareServiceImpl implements IShareService {
     }
 
     @Override
-    public Integer getLastSkipChance(Integer uid) {
+    public Integer getSkipTimes(Integer uid) {
         String key = String.format(userTodaySkipTimesCacheKey, uid,
                 Time.timestampToString(Time.currentTimeSeconds().intValue(), "yyyyMMdd"));
         return redisService.get(key);
     }
 
     @Override
-    public void decreaseLastSkipChance(Integer uid) {
+    public void incrSkipTimes(Integer uid) {
         String key = String.format(userTodaySkipTimesCacheKey, uid,
                 Time.timestampToString(Time.currentTimeSeconds().intValue(), "yyyyMMdd"));
         if (null == redisService.get(key)) {
-            redisService.set(key, 2);
+            redisService.set(key, 1);
             return;
         }
-        redisService.decrement(key, 1);
+        redisService.increment(key, 1);
     }
 
     @Override

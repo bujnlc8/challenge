@@ -46,7 +46,7 @@ public class MockChallengeTask {
         log.info("Start mockChallengeTask ...");
         List<User> users = getMockUser();
         List<Integer> exist = new ArrayList<>();
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 3; i++) {
             Integer j = getRandomInt(42);
             if (exist.indexOf(j) == -1) {
                 exist.add(j);
@@ -58,8 +58,8 @@ public class MockChallengeTask {
 
     private void insertData(Integer uid) {
         Round round = new Round();
-        Integer score = getRandomInt(2901) + 100;
-        Integer correctNum = score / 220 + 1;
+        Integer score = getRandomInt(3000) + 100;
+        Integer correctNum = score / (230 + getRandomInt(300)) + 1;
         round.setUid(uid);
         round.setScore(score);
         round.setIsOver(1);
