@@ -17,6 +17,7 @@ import site.haihui.challenge.entity.Round;
 import site.haihui.challenge.entity.User;
 import site.haihui.challenge.mapper.RoundMapper;
 import site.haihui.challenge.mapper.UserMapper;
+import site.haihui.challenge.service.ICoinRecordService;
 import site.haihui.challenge.service.IShareService;
 import site.haihui.challenge.utils.RedisLock;
 
@@ -36,6 +37,9 @@ public class MockChallengeTask {
     @Autowired
     private IShareService shareService;
 
+    @Autowired
+    private ICoinRecordService coinRecordService;
+
     private static List<Integer> extraUids = Arrays.asList(1, 3, 40, 53, 54, 69);
 
     @Scheduled(cron = "0 0 * * * *")
@@ -43,10 +47,14 @@ public class MockChallengeTask {
         if (null == redisLock.tryLock("mockChallengeTask:lock", 120 * 1000)) {
             return;
         }
+        if (getRandomInt(10) < 7) {
+            log.info("skip...");
+            return;
+        }
         log.info("Start mockChallengeTask ...");
         List<User> users = getMockUser();
         List<Integer> exist = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 2; i++) {
             Integer j = getRandomInt(42);
             if (exist.indexOf(j) == -1) {
                 exist.add(j);
@@ -58,12 +66,14 @@ public class MockChallengeTask {
 
     private void insertData(Integer uid) {
         Round round = new Round();
-        Integer score = getRandomInt(5000) + 200;
-        Integer correctNum = score / (230 + getRandomInt(50)) + 1;
+        Integer score = getRandomInt(4000) + 200;
+        // 加币
+        coinRecordService.operateCoin(uid, 7, 0, score / 5);
+        Integer correctNum = score / (230 + getRandomInt(50)) / (coinRecordService.getGrade(uid) + 10) * 10 + 1;
         round.setUid(uid);
         round.setScore(score);
         round.setIsOver(1);
-        round.setTimeout(30);
+        round.setTimeout(30 + coinRecordService.getGrade(uid));
         round.setTotalQuestion(correctNum);
         round.setCorrectQuestion(correctNum);
         Date now = new Date();
