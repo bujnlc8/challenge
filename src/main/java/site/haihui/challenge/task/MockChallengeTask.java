@@ -69,7 +69,8 @@ public class MockChallengeTask {
         Integer score = getRandomInt(4000) + 200;
         // 加币
         coinRecordService.operateCoin(uid, 7, 0, score / 5);
-        Integer correctNum = score / (230 + getRandomInt(50)) / (coinRecordService.getGrade(uid) + 10) * 10 + 1;
+        Integer correctNum = (int) (score / (230 + getRandomInt(50)) / (coinRecordService.getGrade(uid) / 10.0 + 1)
+                + 1);
         round.setUid(uid);
         round.setScore(score);
         round.setIsOver(1);
