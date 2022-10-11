@@ -240,6 +240,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         Date now = new Date();
         String toast = "";
         boolean isWrong = true;
+        Integer grade = coinRecordService.getGrade(uid);
         if (timeout == 1) {
             res.setResult(0);
             roundDetail.setScore(0);
@@ -284,9 +285,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 if (countDown >= (round.getTimeout() - 2) && shareService.isQuesetionSet(uid, questionId, 6)) {
                     shareService.putQuestionSet(uid, questionId, 4);
                 }
+                shareService.putQuestionSet(uid, questionId, 6);
                 String key = shareService.getCacheKey(uid, 6);
                 boolean exist = redisService.sIsMember(key, questionId);
-                shareService.putQuestionSet(uid, questionId, 6);
                 // 每答对100道题，获得1w百科币
                 Long totalNum = redisService.sSize(key);
                 if (!exist && totalNum % 100 == 0) {
@@ -302,6 +303,13 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             }
             res.setTotalScore(round.getScore());
             res.setRightTotalQuestion(round.getCorrectQuestion());
+        }
+        // 检查是否升级
+        if (StringUtils.isBlank(toast)) {
+            Integer nowGrade = coinRecordService.getGrade(uid);
+            if (nowGrade > grade) {
+                toast = String.format("恭喜你，成功升级到第%s级！", nowGrade);
+            }
         }
         round.setUpdateTime(now);
         roundMapper.updateById(round);
@@ -323,8 +331,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         // 设置排名
         Integer rank = redisService.countZSet(String.format(zSetWeekRankKey, Time.getCurrentWeekOfYear()),
-                round.getScore().doubleValue(), 1000000D).intValue();
-        res.setRank(Numbers.isBlank(rank) ? 1 : rank);
+                round.getScore().doubleValue() + 1, 1000000D).intValue();
+        res.setRank(Numbers.isBlank(rank) ? 1 : rank + 1);
         // 增加答题总数
         shareService.incrCachedQuestionNum(uid, 1);
         redisLock.unlock(cacheKey, token);
