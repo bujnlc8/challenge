@@ -254,8 +254,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             if (question.getAnswer().equals(answer) && roundDetail.getScore() == 0
                     && roundDetail.getCostSecond() == 0) {
                 res.setResult(1);
-                Integer score = (10 + round.getTimeout() - Config.COUNT_DOWN)
-                        * (countDown * 10 + (new Random()).nextInt(10)) / 10;
+                Integer score = (int) ((10 + round.getTimeout() - Config.COUNT_DOWN)
+                        * (countDown * 10 + (new Random()).nextInt(5)) / 10.0);
                 if (round.getScore() < 5000 && (round.getScore() + score) >= 5000) {
                     toast = "恭喜你，本轮得分超过5000，额外送你500百科币！";
                     coinRecordService.operateCoin(uid, CoinSource.FIVE_K, roundId, 0);
