@@ -324,7 +324,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         // 设置排名
         Integer rank = redisService.countZSet(String.format(zSetWeekRankKey, Time.getCurrentWeekOfYear()),
                 round.getScore().doubleValue(), 1000000D).intValue();
-        res.setRank(Numbers.isBlank(rank) ? 1 : rank + 1);
+        res.setRank(Numbers.isBlank(rank) ? 1 : rank);
         // 增加答题总数
         shareService.incrCachedQuestionNum(uid, 1);
         redisLock.unlock(cacheKey, token);
