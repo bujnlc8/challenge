@@ -281,8 +281,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 round.setCorrectQuestion(round.getCorrectQuestion() + 1);
                 roundDetail.setScore(score);
                 isWrong = false;
-                // 这次回答小于28s且答对两次及以上，下次题目不再出现
-                if (countDown >= (round.getTimeout() - 2) && shareService.isQuesetionSet(uid, questionId, 6)) {
+                // 这次回答小于27s且答对两次及以上，下次题目不再出现
+                if (countDown >= (round.getTimeout() - 3) && shareService.isQuesetionSet(uid, questionId, 6)) {
                     shareService.putQuestionSet(uid, questionId, 4);
                 }
                 shareService.putQuestionSet(uid, questionId, 6);
@@ -406,7 +406,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         res.setResetSeconds((int) (Time.getWeekEndDate().getTime() / 1000L - Time.currentTimeSeconds()));
         // 设置我的排名
         setRankExtraData(uid, type, res);
-        redisService.set("rankinglist:" + type, res, 24 * 3600);
+        redisService.set("rankinglist:" + type, res, 7 * 24 * 3600);
         return res;
     }
 

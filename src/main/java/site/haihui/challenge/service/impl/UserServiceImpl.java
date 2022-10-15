@@ -53,6 +53,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private IRedisService<String> redisService;
 
     @Autowired
+    private IRedisService<Object> redisService2;
+
+    @Autowired
     private RoundDetailMapper roundDetailMapper;
 
     @Autowired
@@ -216,5 +219,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             userMapper.updateById(user);
         }
         shareService.setCachedUser(user.getId(), user);
+        // 清除排行榜缓存
+        redisService2.delete("rankinglist:0");
+        redisService2.delete("rankinglist:1");
     }
 }
