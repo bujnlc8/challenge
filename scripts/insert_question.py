@@ -332,9 +332,56 @@ def maps():
         cursor.execute(sql)
         con.commit()
 
+
+def jiakao():
+    """
+    {
+      "question": "拼装的机动车只要认为安全就可以上路行驶。",
+      "an1": "正确",
+      "an2": "错误",
+      "an3": "",
+      "an4": "",
+      "answertrue": 2,
+      "imageurl": "",
+      "stype": 1
+    },
+    """
+    import json
+    datas = json.load(open('jiakao.json', 'r'))['data']
+    sql = ''
+    for x in datas:
+        question = x['question']
+        options = []
+        if x['an1']:
+            options.append(x['an1'])
+        if x['an2']:
+            options.append(x['an2'])
+        if x['an3']:
+            options.append(x['an3'])
+        if x['an4']:
+            options.append(x['an4'])
+        if x['imageurl']:
+            imageurl = x['imageurl'].replace(
+                '/v2/', '###https://bucket-1256650966.cos.ap-beijing.myqcloud.com/jiakao/images/'
+            )
+            question += imageurl
+        t = 6 if x['stype'] == 1 else 7
+        sql += TPL % (
+            pymysql.escape_string(question), \
+            pymysql.escape_string('|'.join(options).strip().replace(' ', '').replace('　', '')), \
+            x['answertrue'], 1, t, 1, datetime.now(), datetime.now(),
+        )
+    con = get_connection()
+    with con.cursor() as cursor:
+        cursor.execute(sql)
+        con.commit()
+
+
 if __name__ == '__main__':
     # kaixincidian()
     # kuwandiqiu()
     # flag()
     # maps()
-    main()
+    # main()
+    jiakao()
+
