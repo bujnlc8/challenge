@@ -86,4 +86,8 @@ public class StringUtils {
         Pattern pattern = Pattern.compile("^[1-9]\\d{16}[0-9Xx]{1}$");
         return pattern.matcher(str).matches();
     }
+
+    public static String makeRankListCacheKey(Integer type) {
+        return "rankinglist:" + Time.getCurrentWeekOfYear() + ":" + type;
+    }
 }

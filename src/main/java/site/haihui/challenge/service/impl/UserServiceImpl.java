@@ -220,7 +220,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         shareService.setCachedUser(user.getId(), user);
         // 清除排行榜缓存
-        redisService2.delete("rankinglist:0");
-        redisService2.delete("rankinglist:1");
+        redisService2.delete(StringUtils.makeRankListCacheKey(1));
+        redisService2.delete(StringUtils.makeRankListCacheKey(0));
     }
 }

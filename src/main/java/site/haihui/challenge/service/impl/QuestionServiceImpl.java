@@ -356,7 +356,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             uid = UserContext.getCurrentUser().getId();
         }
         RankingListVO cachedData = (RankingListVO) redisService
-                .get("rankinglist:" + type);
+                .get(StringUtils.makeRankListCacheKey(type));
         if (null != cachedData) {
             res = cachedData;
             res.setResetSeconds((int) (Time.getWeekEndDate().getTime() / 1000L - Time.currentTimeSeconds()));
@@ -406,7 +406,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         res.setResetSeconds((int) (Time.getWeekEndDate().getTime() / 1000L - Time.currentTimeSeconds()));
         // 设置我的排名
         setRankExtraData(uid, type, res);
-        redisService.set("rankinglist:" + type, res, 7 * 24 * 3600);
+        redisService.set(StringUtils.makeRankListCacheKey(type), res, 7 * 24 * 3600);
         return res;
     }
 

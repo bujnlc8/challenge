@@ -22,6 +22,7 @@ import site.haihui.challenge.mapper.UserMapper;
 import site.haihui.challenge.mapper.WrongQuestionBookMapper;
 import site.haihui.challenge.service.IRedisService;
 import site.haihui.challenge.service.IShareService;
+import site.haihui.challenge.utils.StringUtils;
 import site.haihui.challenge.utils.Time;
 import site.haihui.challenge.vo.CaptchaVO;
 import site.haihui.challenge.vo.IgscVO;
@@ -298,7 +299,7 @@ public class ShareServiceImpl implements IShareService {
             setUserMaxScoreRound(uid, round, 11);
         }
         // 删除排行榜缓存
-        redisService2.delete("rankinglist:0");
-        redisService2.delete("rankinglist:1");
+        redisService2.delete(StringUtils.makeRankListCacheKey(0));
+        redisService2.delete(StringUtils.makeRankListCacheKey(1));
     }
 }
