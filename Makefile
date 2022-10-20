@@ -9,8 +9,8 @@ codeGenerate:
 
 release:
 	./mvnw package -Dmaven.test.skip=true  --settings ./settings.xml
-	docker build -t yy194131/challenge:$(tag) .
-	docker push  yy194131/challenge:$(tag)
+	docker build -t registry.cn-beijing.aliyuncs.com/roselle-1/challenge:$(tag) .
+	docker push  registry.cn-beijing.aliyuncs.com/roselle-1/challenge:$(tag)
 
 deploy: release
 	ssh roselle bash challenge/start_challenge.sh $(tag)
