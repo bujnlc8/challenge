@@ -1,5 +1,8 @@
 package site.haihui.challenge.controller;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.tencent.cloud.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,5 +54,10 @@ public class CommonController {
             @RequestParam Integer type, @RequestParam String remark,
             @RequestParam(value = "question_id") Integer questionId) {
         return ResponseResult.success(shareService.feedback(questionId, token, captcha, type, remark));
+    }
+
+    @GetMapping("/category")
+    public ResponseResult<List<String>> actionGetCategory() {
+        return ResponseResult.success(Arrays.asList("不设置", "百科", "财经", "历史", "地理", "诗词", "驾考科一", "驾考科四", "交规"));
     }
 }
