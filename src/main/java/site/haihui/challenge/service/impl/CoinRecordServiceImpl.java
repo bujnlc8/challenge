@@ -166,13 +166,13 @@ public class CoinRecordServiceImpl extends ServiceImpl<CoinRecordMapper, CoinRec
             return 1;
         } else if (coin >= 50000 && coin < 100000) {
             return 2;
-        } else if (coin >= 100000 && coin < 200000) {
+        } else if (coin >= 100000 && coin < 500000) {
             return 3;
-        } else if (coin >= 200000 && coin < 500000) {
+        } else if (coin >= 500000 && coin < 2000000) {
             return 4;
-        } else if (coin >= 500000 && coin < 1000000) {
+        } else if (coin >= 2000000 && coin < 10000000) {
             return 5;
-        } else if (coin >= 1000000) {
+        } else if (coin >= 10000000) {
             return 6;
         }
         return 0;
@@ -186,11 +186,11 @@ public class CoinRecordServiceImpl extends ServiceImpl<CoinRecordMapper, CoinRec
         }
         Integer coin = getCoin(uid);
         if (grade == 5) {
-            return 1000000 - coin;
+            return 10000000 - coin;
         } else if (grade == 4) {
-            return 500000 - coin;
+            return 2000000 - coin;
         } else if (grade == 3) {
-            return 200000 - coin;
+            return 500000 - coin;
         } else if (grade == 2) {
             return 100000 - coin;
         } else if (grade == 1) {

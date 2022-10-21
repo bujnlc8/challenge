@@ -1,6 +1,7 @@
 # coding=utf-8
 
 from __future__ import unicode_literals
+import json
 import os
 
 import pymysql
@@ -377,11 +378,35 @@ def jiakao():
         con.commit()
 
 
+def fund(src):
+    content = json.load(open(src, 'r'))
+    sql = ''
+    for _, v in content.items():
+        if v['examType'] != 1:
+            continue
+        q = v['content'].replace('&nbsp;', ' ').replace('&emsp;', ' ').replace('<br />', '').strip()
+        options = '|'.join(v['optionList']).replace('&nbsp;', '')
+        answer = ord(v['answer']) - ord('A') + 1
+        # print(q, options, answer)
+        if len(q) > 1000:
+            print(q)
+            continue
+        sql += TPL % (
+            pymysql.escape_string(q), \
+            pymysql.escape_string(options.replace('<br/>', '').strip()), \
+            answer, 1, 9, 1, datetime.now(), datetime.now(),
+        )
+    con = get_connection()
+    with con.cursor() as cursor:
+        cursor.execute(sql)
+        con.commit()
+
 if __name__ == '__main__':
     # kaixincidian()
     # kuwandiqiu()
     # flag()
     # maps()
     # main()
-    jiakao()
+    # jiakao()
+    fund('证券投资基金基础知识_真题_题库.json')
 

@@ -113,7 +113,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             setRoundReliveTimesCache(uid, round.getId());
         }
         if (questions.size() == 0) {
-            questions = getRandomTenQuestions(category);
+            questions = getRandomQuestions(category);
         }
         List<QuestionVO> questionVOs = new ArrayList<>();
         Integer index = 0;
@@ -188,13 +188,15 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return round;
     }
 
-    private List<Question> getRandomTenQuestions(Integer category) {
+    private List<Question> getRandomQuestions(Integer category) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("status", 1);
         if (!Numbers.isBlank(category)) {
             queryWrapper.eq("category", category);
+        } else {
+            queryWrapper.le("category", 5);
         }
-        queryWrapper.last("order by rand() limit 100");
+        queryWrapper.last("order by rand() limit 99");
         return questionMapper.selectList(queryWrapper);
     }
 
@@ -563,7 +565,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 throw new CommonException("今日已超限");
             }
         }
-        List<Question> questions = getRandomTenQuestions(category);
+        List<Question> questions = getRandomQuestions(category);
         List<QuestionVO> questionVOs = new ArrayList<>();
         Integer index = 0;
         for (Question question : questions) {
