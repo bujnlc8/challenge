@@ -59,6 +59,6 @@ public class CommonController {
     @GetMapping("/category")
     public ResponseResult<List<String>> actionGetCategory() {
         return ResponseResult
-                .success(Arrays.asList("不设置", "百科", "财经", "历史", "地理", "诗词", "驾考科一", "驾考科四", "交通规则", "基金从业真题"));
+                .success(Arrays.asList("不限", "财经", "百科", "历史", "地理", "诗词", "驾考科一", "驾考科四", "交通规则", "基金从业真题"));
     }
 }
