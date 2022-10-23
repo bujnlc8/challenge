@@ -20,6 +20,10 @@ TPL = '''INSERT INTO `question` (`content`, `options`, `answer`, `level`, `categ
 `status`, `create_time`, `update_time`) VALUES
 ('%s', '%s', %s, %s, %s, %s, '%s', '%s');'''
 
+TPL1 = '''INSERT INTO `question` (`content`, `options`, `answer`, `level`, `category`,
+`status`, `create_time`, `update_time`, `analysis`) VALUES
+('%s', '%s', %s, %s, %s, %s, '%s', '%s', '%s');'''
+
 
 def get_connection():
     return pymysql.connect(
@@ -384,22 +388,26 @@ def fund(src):
     for _, v in content.items():
         if v['examType'] != 1:
             continue
-        q = v['content'].replace('&nbsp;', ' ').replace('&emsp;', ' ').replace('<br />', '').strip()
-        options = '|'.join(v['optionList']).replace('&nbsp;', '')
+        q = v['content'].replace('&nbsp;', '').replace('&emsp;', '').replace('<br/>', '\n').strip().replace('<br />', '\n')
+        options = '|'.join(v['optionList']).replace('&nbsp;', '').replace('<br/ >', '\n')
         answer = ord(v['answer']) - ord('A') + 1
         # print(q, options, answer)
         if len(q) > 1000:
             print(q)
             continue
-        sql += TPL % (
-            pymysql.escape_string(q), \
+        analysis = v['analysis'].replace('<br />', '').replace('<sup>', '^').replace('<br/>', '\n').replace('<p>', '').replace('</p>', '').strip().replace('&nbsp;', '').replace('&emsp;', '').replace('</sup>', '').replace('<sub>', '').replace('</sub>', '').replace('<span>', '').replace('</span>', '')
+        q = q.replace('<sup>', '^').replace('<br/>', '\n').replace('<p>', '').replace('</p>', '').strip().replace('&nbsp;', '').replace('&emsp;', '').replace('</sup>', '').replace('<sub>', '').replace('</sub>', '').replace('<span>', '').replace('</span>', '')
+        options = options.replace('<sup>', '^').replace('<br/>', '\n').replace('<p>', '').replace('</p>', '').strip().replace('&nbsp;', '').replace('&emsp;', '').replace('</sup>', '').replace('<sub>', '').replace('</sub>', '').replace('<span>', '').replace('</span>', '')
+        sql += TPL1 % (
+            pymysql.escape_string(q.replace('<br/>', '\n')), \
             pymysql.escape_string(options.replace('<br/>', '').strip()), \
-            answer, 1, 9, 1, datetime.now(), datetime.now(),
+            answer, 1, 9, 1, datetime.now(), datetime.now(), pymysql.escape_string(analysis),
         )
     con = get_connection()
     with con.cursor() as cursor:
         cursor.execute(sql)
         con.commit()
+
 
 if __name__ == '__main__':
     # kaixincidian()
@@ -409,4 +417,4 @@ if __name__ == '__main__':
     # main()
     # jiakao()
     fund('证券投资基金基础知识_真题_题库.json')
-
+    # fund('基金法律法规_真题_题库.json')

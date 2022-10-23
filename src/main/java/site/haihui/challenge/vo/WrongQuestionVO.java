@@ -20,4 +20,6 @@ public class WrongQuestionVO implements Serializable {
     private String createTime;
 
     private Integer questionId;
+
+    private String analysis;
 }

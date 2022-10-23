@@ -18,4 +18,6 @@ public class CheckAnswerVO implements Serializable {
     private String toast = "";
 
     private Integer rank = 0;
+
+    private String analysis = "";
 }

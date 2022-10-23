@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import site.haihui.challenge.common.auth.UserContext;
+import site.haihui.challenge.common.constant.AppType;
 import site.haihui.challenge.common.constant.CoinSource;
 import site.haihui.challenge.common.constant.Config;
 import site.haihui.challenge.common.exception.BadRequestException;
@@ -305,6 +306,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             }
             res.setTotalScore(round.getScore());
             res.setRightTotalQuestion(round.getCorrectQuestion());
+            res.setAnalysis(question.getAnalysis());
         }
         // 检查是否升级
         if (StringUtils.isBlank(toast)) {
@@ -490,6 +492,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             vo.setOptions(question.getOptions());
             vo.setCorrectAnswer(question.getAnswer());
             vo.setQuestionId(question.getId());
+            vo.setAnalysis(question.getAnalysis());
             res.add(vo);
         }
         return res;
@@ -611,7 +614,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         if (!shareService.isQuesetionSet(uid, questionId, 8)) {
             throw new CommonException("不在训练题目内");
         }
-        if (redisService.sSize(shareService.getCacheKey(uid, 7)) >= 200 && !isVipUser(uid)) {
+        if (redisService.sSize(shareService.getCacheKey(uid, 7)) > 200 && !isVipUser(uid)) {
             throw new CommonException("今日已超限");
         }
         CheckAnswerVO res = new CheckAnswerVO();
@@ -621,10 +624,15 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         if (!question.getAnswer().equals(answer)) {
             res.setResult(0);
+            if (null != UserContext.getCurrentUser()
+                    && UserContext.getCurrentUser().getAppType().equals(AppType.WXMINIAPP.getAppType())) {
+                insertWrongQuestionBook(uid, questionId, answer);
+            }
         } else {
             res.setResult(1);
         }
         res.setRightAnswer(question.getAnswer());
+        res.setAnalysis(question.getAnalysis());
         // 加入已答列表
         shareService.putQuestionSet(uid, questionId, 7);
         if (redisService.sSize(shareService.getCacheKey(uid, 7)) >= 200) {
