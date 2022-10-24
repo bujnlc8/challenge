@@ -71,7 +71,7 @@ public class CoinSource {
             case 4:
                 return -1000;
             case 5:
-                return 5000;
+                return 10000;
             case 6:
                 return 10000;
             case 8:

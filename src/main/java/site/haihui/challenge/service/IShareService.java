@@ -12,7 +12,7 @@ public interface IShareService {
 
     public Integer getCachedQuestionNum(Integer uid, Integer type);
 
-    public void incrCachedQuestionNum(Integer uid, Integer type);
+    public void incrCachedQuestionNum(Integer uid, Integer type, Integer fromWhere);
 
     public void setCachedQuestionNum(Integer uid, Integer num, Integer type);
 

@@ -107,15 +107,20 @@ public class ShareServiceImpl implements IShareService {
     }
 
     @Override
-    public void incrCachedQuestionNum(Integer uid, Integer type) {
-        if (null == getCachedQuestionNum(uid, type)) {
-            return;
-        }
-        String key = getCacheKey(uid, type);
-        redisService.increment(key, 1);
-        if (type == 0) {
-            key = getCacheKey(uid, 5);
+    public void incrCachedQuestionNum(Integer uid, Integer type, Integer fromWhere) {
+        // 练习模式, 仅增加错题集数量
+        if (fromWhere == 0) {
+            if (type == 0) {
+                String key = getCacheKey(uid, 5);
+                redisService.increment(key, 1);
+            }
+        } else { // 挑战模式
+            String key = getCacheKey(uid, type);
             redisService.increment(key, 1);
+            if (type == 0) {
+                key = getCacheKey(uid, 5);
+                redisService.increment(key, 1);
+            }
         }
     }
 

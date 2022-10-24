@@ -323,7 +323,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         roundDetail.setCostSecond(costSecond <= 0 ? 1 : costSecond);
         roundDetailMapper.updateById(roundDetail);
         if (isWrong) {
-            insertWrongQuestionBook(uid, questionId, answer);
+            insertWrongQuestionBook(uid, questionId, answer, 1);
         }
         // 设置用户最高分
         if (round.getScore() > shareService.getUserMaxScore(uid, 2)) {
@@ -338,7 +338,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 round.getScore().doubleValue() + 1, 1000000D).intValue();
         res.setRank(Numbers.isBlank(rank) ? 1 : rank + 1);
         // 增加答题总数
-        shareService.incrCachedQuestionNum(uid, 1);
+        shareService.incrCachedQuestionNum(uid, 1, 1);
         redisLock.unlock(cacheKey, token);
         res.setToast(toast);
         return res;
@@ -460,7 +460,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return roundMapper.getCurrentWeekRoundRankList(null, null);
     }
 
-    private void insertWrongQuestionBook(Integer uid, Integer questionId, Integer answer) {
+    private void insertWrongQuestionBook(Integer uid, Integer questionId, Integer answer, Integer fromWhere) {
         WrongQuestionBook questionBook = new WrongQuestionBook();
         questionBook.setUid(uid);
         questionBook.setAnswer(answer);
@@ -470,7 +470,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         questionBook.setCreateTime(now);
         questionBook.setUpdateTime(now);
         wrongQuestionBookMapper.insert(questionBook);
-        shareService.incrCachedQuestionNum(uid, 0);
+        // 增加错题数
+        shareService.incrCachedQuestionNum(uid, 0, fromWhere);
     }
 
     @Override
@@ -562,7 +563,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Override
     public QuestionListVO trainingQuestions(Integer uid, Integer category) {
-        if (redisService.sSize(shareService.getCacheKey(uid, 7)) >= 200
+        if (redisService.sSize(shareService.getCacheKey(uid, 7)) >= 300
                 || redisService.sSize(shareService.getCacheKey(uid, 8)) >= 400) {
             if (!isVipUser(uid)) {
                 throw new CommonException("今日已超限");
@@ -614,7 +615,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         if (!shareService.isQuesetionSet(uid, questionId, 8)) {
             throw new CommonException("不在训练题目内");
         }
-        if (redisService.sSize(shareService.getCacheKey(uid, 7)) > 200 && !isVipUser(uid)) {
+        if (redisService.sSize(shareService.getCacheKey(uid, 7)) > 300 && !isVipUser(uid)) {
             throw new CommonException("今日已超限");
         }
         CheckAnswerVO res = new CheckAnswerVO();
@@ -626,7 +627,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             res.setResult(0);
             if (null != UserContext.getCurrentUser()
                     && UserContext.getCurrentUser().getAppType().equals(AppType.WXMINIAPP.getAppType())) {
-                insertWrongQuestionBook(uid, questionId, answer);
+                insertWrongQuestionBook(uid, questionId, answer, 0);
             }
         } else {
             res.setResult(1);
@@ -635,7 +636,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         res.setAnalysis(question.getAnalysis());
         // 加入已答列表
         shareService.putQuestionSet(uid, questionId, 7);
-        if (redisService.sSize(shareService.getCacheKey(uid, 7)) >= 200) {
+        if (redisService.sSize(shareService.getCacheKey(uid, 7)) >= 300) {
             coinRecordService.operateCoin(uid, CoinSource.TRAIN, 0, 0);
         }
         return res;
