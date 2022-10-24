@@ -371,10 +371,10 @@ def jiakao():
             )
             question += imageurl
         t = 6 if x['stype'] == 1 else 7
-        sql += TPL % (
+        sql += TPL1 % (
             pymysql.escape_string(question), \
             pymysql.escape_string('|'.join(options).strip().replace(' ', '').replace('　', '')), \
-            x['answertrue'], 1, t, 1, datetime.now(), datetime.now(),
+            x['answertrue'], 1, t, 1, datetime.now(), datetime.now(), pymysql.escape_string(x['explain']),
         )
     con = get_connection()
     with con.cursor() as cursor:
@@ -415,6 +415,6 @@ if __name__ == '__main__':
     # flag()
     # maps()
     # main()
-    # jiakao()
-    fund('证券投资基金基础知识_真题_题库.json')
+    jiakao()
+    #fund('证券投资基金基础知识_真题_题库.json')
     # fund('基金法律法规_真题_题库.json')
