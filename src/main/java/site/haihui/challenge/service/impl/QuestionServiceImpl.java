@@ -548,6 +548,15 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             }
             skipNum += 1;
             redisService.set(key, skipNum);
+            // 删除题目
+            if (uid == 1 || uid == 3) {
+                Question question = getById(id);
+                if (null != question) {
+                    question.setStatus(0);
+                    question.setUpdateTime(new Date());
+                    updateById(question);
+                }
+            }
         } else if (t == 1) {
             Integer userGrade = coinRecordService.getGrade(uid);
             Integer skipTimes = shareService.getSkipTimes(uid);
