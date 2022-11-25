@@ -2,6 +2,8 @@ package site.haihui.challenge.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import org.apache.ibatis.annotations.Param;
+
 import site.haihui.challenge.entity.Quotes;
 
 /**
@@ -14,6 +16,6 @@ import site.haihui.challenge.entity.Quotes;
  */
 public interface QuotesMapper extends BaseMapper<Quotes> {
 
-    public Quotes getRandomOne();
+    public Quotes getRandomOne(@Param(value = "quote") String quote, @Param(value = "author") String author);
 
 }

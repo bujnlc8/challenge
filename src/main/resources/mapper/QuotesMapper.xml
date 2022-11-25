@@ -3,6 +3,14 @@
 <mapper namespace="site.haihui.challenge.mapper.QuotesMapper">
 
     <select id="getRandomOne" resultType="site.haihui.challenge.entity.Quotes">
-        SELECT * FROM quotes ORDER BY rand() LIMIT 1;
+        SELECT * FROM quotes WHERE 1 = 1
+        <bind name="pattern" value="'%' + quote + '%'" />
+        <if test="param1 != ''">
+            and quote like #{pattern}
+        </if>
+        <if test="param2 != ''">
+            and author = #{author}
+        </if>
+        ORDER BY rand() LIMIT 1;
     </select>
 </mapper>

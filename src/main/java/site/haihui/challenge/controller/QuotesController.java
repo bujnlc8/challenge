@@ -3,6 +3,7 @@ package site.haihui.challenge.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import site.haihui.challenge.common.response.ResponseResult;
@@ -25,7 +26,8 @@ public class QuotesController {
     private IQuotesService quotesService;
 
     @GetMapping("/one")
-    public ResponseResult<Quotes> actionGetRandomeOne() {
-        return ResponseResult.success(quotesService.getRandomOne());
+    public ResponseResult<Quotes> actionGetRandomeOne(@RequestParam(defaultValue = "", required = false) String quote,
+            @RequestParam(defaultValue = "", required = false) String author) {
+        return ResponseResult.success(quotesService.getRandomOne(quote, author));
     }
 }

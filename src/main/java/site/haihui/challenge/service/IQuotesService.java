@@ -14,5 +14,5 @@ import site.haihui.challenge.entity.Quotes;
  */
 public interface IQuotesService extends IService<Quotes> {
 
-    public Quotes getRandomOne();
+    public Quotes getRandomOne(String quote, String author);
 }

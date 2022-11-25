@@ -24,8 +24,8 @@ public class QuotesServiceImpl extends ServiceImpl<QuotesMapper, Quotes> impleme
     private QuotesMapper quotesMapper;
 
 	@Override
-	public Quotes getRandomOne() {
-		return quotesMapper.getRandomOne();
+	public Quotes getRandomOne(String quote, String author) {
+		return quotesMapper.getRandomOne(quote, author);
 	}
 
 }
