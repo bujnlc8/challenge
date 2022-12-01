@@ -118,13 +118,16 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         List<QuestionVO> questionVOs = new ArrayList<>();
         Integer index = 0;
-        for (Question question : questions) {
+        for (int i = 0; i < questions.size(); i++) {
+            Question question = questions.get(i);
             // 在简单列表不返回
             if (shareService.isQuesetionSet(uid, question.getId(), 4) && questionId == 0) {
-                continue;
+                if (!(index == 0 && i == (questions.size() - 1)))
+                    continue;
             }
             if (checkQuestionExist(uid, round.getId(), question.getId())) {
-                continue;
+                if (!(index == 0 && i == (questions.size() - 1)))
+                    continue;
             } else {
                 saveRoundQuestion(uid, round.getId(), question.getId());
             }
@@ -254,51 +257,53 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             round.setIsOver(1);
         } else {
             Question question = getQustionById(questionId);
-            if (question.getAnswer().equals(answer) && roundDetail.getScore() == 0
-                    && roundDetail.getCostSecond() == 0) {
+            if (question.getAnswer().equals(answer)) {
                 res.setResult(1);
-                Integer score = (int) ((10 + round.getTimeout() - Config.COUNT_DOWN)
-                        * (countDown * 10 + (new Random()).nextInt(5)) / 10.0);
-                if (round.getScore() < 5000 && (round.getScore() + score) >= 5000) {
-                    toast = "恭喜你，本轮得分超过5000，额外送你500百科币！";
-                    coinRecordService.operateCoin(uid, CoinSource.FIVE_K, roundId, 0);
-                } else if (round.getScore() < 10000 && (round.getScore() + score) >= 10000) {
-                    toast = "恭喜你，本轮得分超过10000，额外送你1000百科币！";
-                    coinRecordService.operateCoin(uid, CoinSource.TEN_K, roundId, 0);
-                }
-                // 本轮没有复活过
-                if (null == redisServiceInt.get(String.format(roundUsedRelive, uid, roundId))) {
-                    if (round.getCorrectQuestion() == 4) {
-                        toast = "恭喜你，本轮已连续答对5题，送你500百科币！";
-                        coinRecordService.operateCoin(uid, CoinSource.FIVE_CONTINUE, roundId, 0);
-                    } else if (round.getCorrectQuestion() == 9) {
-                        toast = "恭喜你，本轮已连续答对10题，送你1000百科币！";
-                        coinRecordService.operateCoin(uid, CoinSource.TEN_CONTINUE, roundId, 0);
-                    } else if (round.getCorrectQuestion() == 19) {
-                        toast = "恭喜你，本轮已连续答对20题，送你5000百科币！";
-                        coinRecordService.operateCoin(uid, CoinSource.TWENTY_CONTINUE, roundId, 0);
+                if (roundDetail.getScore() == 0
+                        && roundDetail.getCostSecond() == 0) {
+                    Integer score = (int) ((10 + round.getTimeout() - Config.COUNT_DOWN)
+                            * (countDown * 10 + (new Random()).nextInt(5)) / 10.0);
+                    if (round.getScore() < 5000 && (round.getScore() + score) >= 5000) {
+                        toast = "恭喜你，本轮得分超过5000，额外送你500百科币！";
+                        coinRecordService.operateCoin(uid, CoinSource.FIVE_K, roundId, 0);
+                    } else if (round.getScore() < 10000 && (round.getScore() + score) >= 10000) {
+                        toast = "恭喜你，本轮得分超过10000，额外送你1000百科币！";
+                        coinRecordService.operateCoin(uid, CoinSource.TEN_K, roundId, 0);
                     }
+                    // 本轮没有复活过
+                    if (null == redisServiceInt.get(String.format(roundUsedRelive, uid, roundId))) {
+                        if (round.getCorrectQuestion() == 4) {
+                            toast = "恭喜你，本轮已连续答对5题，送你500百科币！";
+                            coinRecordService.operateCoin(uid, CoinSource.FIVE_CONTINUE, roundId, 0);
+                        } else if (round.getCorrectQuestion() == 9) {
+                            toast = "恭喜你，本轮已连续答对10题，送你1000百科币！";
+                            coinRecordService.operateCoin(uid, CoinSource.TEN_CONTINUE, roundId, 0);
+                        } else if (round.getCorrectQuestion() == 19) {
+                            toast = "恭喜你，本轮已连续答对20题，送你5000百科币！";
+                            coinRecordService.operateCoin(uid, CoinSource.TWENTY_CONTINUE, roundId, 0);
+                        }
+                    }
+                    round.setScore(round.getScore() + score);
+                    round.setUpdateTime(now);
+                    round.setCorrectQuestion(round.getCorrectQuestion() + 1);
+                    roundDetail.setScore(score);
+                    isWrong = false;
+                    // 这次回答小于27s且答对两次及以上，下次题目不再出现
+                    if (countDown >= (round.getTimeout() - 3) && shareService.isQuesetionSet(uid, questionId, 6)) {
+                        shareService.putQuestionSet(uid, questionId, 4);
+                    }
+                    shareService.putQuestionSet(uid, questionId, 6);
+                    String key = shareService.getCacheKey(uid, 6);
+                    boolean exist = redisService.sIsMember(key, questionId);
+                    // 每答对100道题，获得1w百科币
+                    Long totalNum = redisService.sSize(key);
+                    if (!exist && totalNum % 100 == 0) {
+                        coinRecordService.operateCoin(uid, CoinSource.CHALLENGE, roundId, 0);
+                        toast = String.format("恭喜你，共答对%s道题，获得10000百科币！", totalNum);
+                    }
+                    // 添加奖励
+                    coinRecordService.operateCoin(uid, CoinSource.ANSWER_CORRECT, roundId, score / 5);
                 }
-                round.setScore(round.getScore() + score);
-                round.setUpdateTime(now);
-                round.setCorrectQuestion(round.getCorrectQuestion() + 1);
-                roundDetail.setScore(score);
-                isWrong = false;
-                // 这次回答小于27s且答对两次及以上，下次题目不再出现
-                if (countDown >= (round.getTimeout() - 3) && shareService.isQuesetionSet(uid, questionId, 6)) {
-                    shareService.putQuestionSet(uid, questionId, 4);
-                }
-                shareService.putQuestionSet(uid, questionId, 6);
-                String key = shareService.getCacheKey(uid, 6);
-                boolean exist = redisService.sIsMember(key, questionId);
-                // 每答对100道题，获得1w百科币
-                Long totalNum = redisService.sSize(key);
-                if (!exist && totalNum % 100 == 0) {
-                    coinRecordService.operateCoin(uid, CoinSource.CHALLENGE, roundId, 0);
-                    toast = String.format("恭喜你，共答对%s道题，获得10000百科币！", totalNum);
-                }
-                // 添加奖励
-                coinRecordService.operateCoin(uid, CoinSource.ANSWER_CORRECT, roundId, score / 5);
             } else {
                 res.setResult(0);
                 res.setRightAnswer(question.getAnswer());
