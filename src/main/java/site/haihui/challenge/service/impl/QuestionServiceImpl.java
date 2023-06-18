@@ -74,7 +74,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     @Autowired
     private IRedisService<Object> redisService;
 
-    public static final String VIPUSER = "VIPUSER";
+    public static final String VIPUSER = "challenge:VIPUSER";
 
     @Autowired
     private ICoinRecordService coinRecordService;
@@ -85,9 +85,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     @Autowired
     private IRedisService<Integer> redisServiceInt;
 
-    private String roundReliveTimes = "%s:%s:roundReliveTimes";
+    private String roundReliveTimes = "challenge:%s:%s:roundReliveTimes";
 
-    private String roundUsedRelive = "%s:%s:usedRelive";
+    private String roundUsedRelive = "challenge:%s:%s:usedRelive";
 
     private String zSetRankKey = ShareServiceImpl.zSetRankKey;
 
@@ -223,7 +223,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     @Override
     public CheckAnswerVO checkAnswer(Integer uid, Integer roundId, Integer questionId, Integer countDown,
             Integer timeout, Integer answer) {
-        String cacheKey = String.format("%s:checkAnswer", uid);
+        String cacheKey = String.format("challenge:%s:checkAnswer", uid);
         String token = redisLock.tryLock(cacheKey, 10000);
         if (StringUtils.isBlank(token)) {
             throw new CommonException("请求太频繁，请稍后再试");
@@ -383,7 +383,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                     shareService.setRankCache(type, round);
                 }
             } else {
-                list = redisService.getZSetRevRange(key, 0, 100).stream().map(e -> (Round) e)
+                list = redisService.getZSetRevRange(key, 0, 99).stream().map(e -> (Round) e)
                         .collect(Collectors.toList());
             }
         } else {
@@ -394,7 +394,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                     shareService.setRankCache(1, round);
                 }
             } else {
-                list = redisService.getZSetRevRange(zSetRankKey, 0, 100).stream().map(e -> (Round) e)
+                list = redisService.getZSetRevRange(zSetRankKey, 0, 99).stream().map(e -> (Round) e)
                         .filter(e -> e.getScore() >= 2000)
                         .collect(Collectors.toList());
             }
@@ -506,15 +506,15 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Override
     public void clearQuestionCache(Integer id) {
-        redisService.delete("question:" + id);
+        redisService.delete("challenge:question:" + id);
     }
 
     private void putQuestionCache(Question question) {
-        redisService.set("question:" + question.getId(), question);
+        redisService.set("challenge:question:" + question.getId(), question);
     }
 
     private Question getQuestionFromCache(Integer id) {
-        return (Question) redisService.get("question:" + id);
+        return (Question) redisService.get("challenge:question:" + id);
     }
 
     private Question getQustionById(Integer questionId) {

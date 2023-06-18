@@ -30,37 +30,37 @@ import site.haihui.challenge.vo.IgscVO;
 @Service
 public class ShareServiceImpl implements IShareService {
 
-    public static String userMaxScoreKey = "%s:userMaxScoreKey"; // 最高分
+    public static String userMaxScoreKey = "challenge:%s:userMaxScoreKey"; // 最高分
 
-    public static String userMaxScoreRoundKey = "%s:userMaxScoreRoundKey"; // 最高分
+    public static String userMaxScoreRoundKey = "challenge:%s:userMaxScoreRoundKey"; // 最高分
 
-    public static String userWrongQuestionKey = "%s:userWrongQuestionKey"; // 答错题
+    public static String userWrongQuestionKey = "challenge:%s:userWrongQuestionKey"; // 答错题
 
-    public static String userWrongValidQuestionKey = "%s:userValidWrongQuestionKey"; // 错题本
+    public static String userWrongValidQuestionKey = "challenge:%s:userValidWrongQuestionKey"; // 错题本
 
-    public static String userTotalQuestionKey = "%s:userTotalQuestionKey"; // 回答总数
+    public static String userTotalQuestionKey = "challenge:%s:userTotalQuestionKey"; // 回答总数
 
-    public static String userCacheKey = "%s:userCacheKeyNew"; // 用户信息缓存
+    public static String userCacheKey = "challenge:%s:userCacheKeyNew"; // 用户信息缓存
 
-    public static String userSimpleQuestionCacheKey = "%s:userSimpleQuestionCacheKey"; // 跳过题
+    public static String userSimpleQuestionCacheKey = "challenge:%s:userSimpleQuestionCacheKey"; // 跳过题
 
-    public static String userTodaySkipTimesCacheKey = "%s:%s:userTodaySkipTimesKey"; // 今日跳过数
+    public static String userTodaySkipTimesCacheKey = "challenge:%s:%s:userTodaySkipTimesKey"; // 今日跳过数
 
-    public static String userTodayHideTimesCacheKey = "%s:%s:userTodayHideTimesCacheKey"; // 今日隐藏题目
+    public static String userTodayHideTimesCacheKey = "challenge:%s:%s:userTodayHideTimesCacheKey"; // 今日隐藏题目
 
-    public static String userCorrectCacheKey = "%s:userCorrectCacheKey"; // 答对题
+    public static String userCorrectCacheKey = "challenge:%s:userCorrectCacheKey"; // 答对题
 
-    public static String userTodayTrainingCacheKey = "%s:%s:userTodayTrainingCacheKey"; // 今日训练
+    public static String userTodayTrainingCacheKey = "challenge:%s:%s:userTodayTrainingCacheKey"; // 今日训练
 
-    public static String userTodayTotalTrainingCacheKey = "%s:%s:userTodayTotalTrainingCacheKey"; // 今日训练请求的题目数
+    public static String userTodayTotalTrainingCacheKey = "challenge:%s:%s:userTodayTotalTrainingCacheKey"; // 今日训练请求的题目数
 
-    public static String userCurrentWeekMaxScore = "%s:%s:userCurrentWeekMaxScore";
+    public static String userCurrentWeekMaxScore = "challenge:%s:%s:userCurrentWeekMaxScore";
 
-    public static String userCurrentWeekMaxScoreRound = "%s:%s:userCurrentWeekMaxScoreRound";
+    public static String userCurrentWeekMaxScoreRound = "challenge:%s:%s:userCurrentWeekMaxScoreRound";
 
-    public static String zSetRankKey = "allrank";
+    public static String zSetRankKey = "challenge:allrank";
 
-    public static String zSetWeekRankKey = "weekrank:%s";
+    public static String zSetWeekRankKey = "challenge:weekrank:%s";
 
     @Autowired
     private RestTemplate restTemplate;

@@ -40,22 +40,22 @@ public class MockChallengeTask {
     @Autowired
     private ICoinRecordService coinRecordService;
 
-    private static List<Integer> extraUids = Arrays.asList(1, 3, 40, 53, 54, 69);
+    private static List<Integer> extraUids = Arrays.asList(1, 3, 40, 53, 54, 69, 87, 119);
 
     @Scheduled(cron = "0 0 * * * *")
     public void run() {
         if (null == redisLock.tryLock("mockChallengeTask:lock", 120 * 1000)) {
             return;
         }
-        if (getRandomInt(10) < 7) {
+        if (getRandomInt(10) < 8) {
             log.info("skip...");
             return;
         }
         log.info("Start mockChallengeTask ...");
         List<User> users = getMockUser();
         List<Integer> exist = new ArrayList<>();
-        for (int i = 0; i < 2; i++) {
-            Integer j = getRandomInt(42);
+        for (int i = 0; i < 1; i++) {
+            Integer j = getRandomInt(users.size());
             if (exist.indexOf(j) == -1) {
                 exist.add(j);
                 insertData(users.get(j).getId());
@@ -92,9 +92,10 @@ public class MockChallengeTask {
 
     private List<User> getMockUser() {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.gt("id", 83);
-        queryWrapper.le("id", 119);
-        queryWrapper.or().in("id", extraUids);
+        // queryWrapper.gt("id", 83);
+        // queryWrapper.le("id", 119);
+        // queryWrapper.or().in("id", extraUids);
+        queryWrapper.in("id", extraUids);
         return userMapper.selectList(queryWrapper);
     }
 

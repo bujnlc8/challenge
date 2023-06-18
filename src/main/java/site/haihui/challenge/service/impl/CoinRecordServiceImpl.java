@@ -45,13 +45,13 @@ public class CoinRecordServiceImpl extends ServiceImpl<CoinRecordMapper, CoinRec
     @Autowired
     private RedisLock redisLock;
 
-    private static final String userTodayCacheKey = "%s:%s:userTodayCacheKey";
+    private static final String userTodayCacheKey = "challenge:%s:%s:userTodayCacheKey";
 
-    private static final String userTotalCacheKey = "%s:userTotalCacheKey";
+    private static final String userTotalCacheKey = "challenge:%s:userTotalCacheKey";
 
-    private String roundReliveTimes = "%s:%s:roundReliveTimes";
+    private String roundReliveTimes = "challenge:%s:%s:roundReliveTimes";
 
-    private String roundUsedRelive = "%s:%s:usedRelive";
+    private String roundUsedRelive = "challenge:%s:%s:usedRelive";
 
     @Override
     public boolean operateCoin(Integer uid, Integer source, Integer roundId, Integer amount) {

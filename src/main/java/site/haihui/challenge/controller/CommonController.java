@@ -29,7 +29,7 @@ public class CommonController {
 
     /**
      * 获取腾讯云临时上传凭证
-     * 
+     *
      * @return
      */
     @GetMapping("/qcloud/temporay_key")

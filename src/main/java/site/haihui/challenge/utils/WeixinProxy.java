@@ -179,7 +179,7 @@ public class WeixinProxy {
     }
 
     public String getAccessToken(String appId, String appSecret, AppType appType) {
-        String key = String.format("cached_access_token:%s", appType.getAppType());
+        String key = String.format("challenge:cached_access_token:%s", appType.getAppType());
         String cached = redisService.get(key);
         if (null != cached && !cached.isEmpty()) {
             return cached;

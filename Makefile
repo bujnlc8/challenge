@@ -8,8 +8,7 @@ codeGenerate:
 	mvn exec:java -Dexec.mainClass="site.haihui.challenge.utils.MPGenerator"  -Dexec.cleanupDaemonThreads=false
 
 release:
-	./mvnw clean
-	./mvnw package -Dmaven.test.skip=true  --settings ./settings.xml
+	./mvnw clean package -Dmaven.test.skip=true  --settings ./settings.xml
 	docker build -t registry.cn-beijing.aliyuncs.com/roselle-1/challenge:$(tag) .
 	docker push  registry.cn-beijing.aliyuncs.com/roselle-1/challenge:$(tag)
 

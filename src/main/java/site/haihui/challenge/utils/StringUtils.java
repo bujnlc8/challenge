@@ -8,7 +8,7 @@ public class StringUtils {
 
     /**
      * 以`*`对字符串进行脱敏
-     * 
+     *
      * @param content
      * @param begin 包含
      * @param end 不包含
@@ -33,7 +33,7 @@ public class StringUtils {
 
     /**
      * 判断字符串是否全部为数字
-     * 
+     *
      * @param str
      * @return
      */
@@ -44,7 +44,7 @@ public class StringUtils {
 
     /**
      * 判断字符串是否为null和长度为0
-     * 
+     *
      * @param str
      * @return
      */
@@ -57,7 +57,7 @@ public class StringUtils {
 
     /**
      * md5 hash
-     * 
+     *
      * @param str
      * @return
      */
@@ -67,7 +67,7 @@ public class StringUtils {
 
     /**
      * 粗略判断手机号
-     * 
+     *
      * @param str
      * @return
      */
@@ -78,7 +78,7 @@ public class StringUtils {
 
     /**
      * 粗略判断身份证
-     * 
+     *
      * @param str
      * @return
      */
@@ -88,6 +88,6 @@ public class StringUtils {
     }
 
     public static String makeRankListCacheKey(Integer type) {
-        return "rankinglist:" + Time.getCurrentWeekOfYear() + ":" + type;
+        return "challenge:rankinglist:" + Time.getCurrentWeekOfYear() + ":" + type;
     }
 }

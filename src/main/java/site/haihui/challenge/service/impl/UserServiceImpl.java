@@ -113,7 +113,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         WeixinLoginResponseVO res = new WeixinLoginResponseVO();
         res.setUid(user.getId());
         String token = StringUtils.getMd5Str(user.getId() + ":" + now.getTime());
-        redisService.set(String.format("%s:token", user.getId()), token);
+        redisService.set(String.format("challenge:%s:token", user.getId()), token);
         res.setToken(token);
         res.setAvatar(user.getAvatar());
         res.setNickname(user.getNickname());

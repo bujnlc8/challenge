@@ -36,7 +36,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             String uid = header[0];
             String token = header[1];
             try {
-                String cachedToken = redisService.get(String.format("%s:token", uid));
+                String cachedToken = redisService.get(String.format("challenge:%s:token", uid));
                 if (cachedToken == null || !cachedToken.equals(token)) {
                     if (checkLogin) {
                         throw new UnAuthorizedException("用户不存在");
