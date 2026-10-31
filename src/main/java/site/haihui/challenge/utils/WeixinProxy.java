@@ -189,7 +189,6 @@ public class WeixinProxy {
         requestMap.put("appSecret", appSecret);
         ResponseEntity<AccessTokenResponse> responseEntity = restTemplate.getForEntity(makeUrl(AccessTokenUrl, appType),
                 AccessTokenResponse.class, requestMap);
-        log.info("responseEntity body: {}", responseEntity.getBody());
         AccessTokenResponse accessTokenResponse = responseEntity.getBody();
         if (null != accessTokenResponse.getErrcode() && accessTokenResponse.getErrcode() != 0) {
             return "";
@@ -208,6 +207,28 @@ public class WeixinProxy {
         ResponseEntity<byte[]> responseEntity = restTemplate.postForEntity(WxacodeUrl, request, byte[].class,
                 requestMap);
         return responseEntity.getBody();
+    }
+
+    public byte[] generateQuestionShareCode(Integer questionId, String environment, String accessToken) {
+        MiniAppCode.requireEnvironment(environment);
+        Map<String, Object> body = new HashMap<>();
+        body.put("scene", String.valueOf(questionId));
+        body.put("page", "pages/answer/answer");
+        body.put("width", 430);
+        body.put("env_version", environment);
+        body.put("check_path", "release".equals(environment));
+        return restTemplate.postForEntity(WxacodeUrl, new HttpEntity<>(body), byte[].class, accessToken).getBody();
+    }
+
+    public byte[] generateAppShareCode(String environment, String accessToken) {
+        MiniAppCode.requireEnvironment(environment);
+        Map<String, Object> body = new HashMap<>();
+        body.put("scene", "home");
+        body.put("page", "pages/index/index");
+        body.put("width", 430);
+        body.put("env_version", environment);
+        body.put("check_path", "release".equals(environment));
+        return restTemplate.postForEntity(WxacodeUrl, new HttpEntity<>(body), byte[].class, accessToken).getBody();
     }
 
     public MiniResponse sendMiniMessage(String accessToken, MiniMessageBody body) {

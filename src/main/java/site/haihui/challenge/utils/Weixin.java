@@ -104,7 +104,6 @@ public class Weixin {
 
     public MiniResponse sendMiniMessage(MiniMessageBody body) {
         String accessToken = getAccessToken();
-        System.out.println(accessToken);
         if (accessToken.isEmpty()) {
             return null;
         }

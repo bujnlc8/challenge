@@ -2,6 +2,7 @@ package site.haihui.challenge.controller;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import com.tencent.cloud.Response;
 
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import site.haihui.challenge.common.auth.LoginRequire;
 import site.haihui.challenge.common.response.ResponseResult;
+import site.haihui.challenge.daily.AppShareCodeService;
 import site.haihui.challenge.service.IShareService;
 import site.haihui.challenge.utils.QcloudUtil;
 
@@ -26,6 +28,15 @@ public class CommonController {
 
     @Autowired
     private IShareService shareService;
+
+    @Autowired
+    private AppShareCodeService appShareCodeService;
+
+    @PostMapping("/share-code")
+    public ResponseResult<Map<String, Object>> shareCode(
+            @RequestParam(value = "env_version", defaultValue = "release") String environment) {
+        return ResponseResult.success(appShareCodeService.shareCode(environment));
+    }
 
     /**
      * 获取腾讯云临时上传凭证

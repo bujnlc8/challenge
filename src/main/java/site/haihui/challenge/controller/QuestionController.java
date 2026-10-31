@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import site.haihui.challenge.common.auth.LoginRequire;
 import site.haihui.challenge.common.auth.UserContext;
+import site.haihui.challenge.common.constant.AppType;
+import site.haihui.challenge.daily.DailyChallengeService;
 import site.haihui.challenge.common.response.ResponseResult;
 import site.haihui.challenge.service.IQuestionService;
 import site.haihui.challenge.utils.StringUtils;
@@ -36,6 +38,21 @@ public class QuestionController {
 
     @Autowired
     private IQuestionService questionService;
+
+    @Autowired
+    private DailyChallengeService dailyChallengeService;
+
+    @PostMapping("/share-code")
+    @LoginRequire
+    public ResponseResult<Map<String, Object>> shareCode(
+            @RequestParam("question_id") Integer questionId,
+            @RequestParam(value = "env_version", defaultValue = "release") String environment) {
+        if (!AppType.WXMINIAPP.getAppType()
+                .equals(UserContext.getCurrentUser().getAppType())) {
+            return ResponseResult.fail("请在微信小程序中生成海报");
+        }
+        return ResponseResult.success(dailyChallengeService.shareCode(questionId, environment));
+    }
 
     @PostMapping("/start-challenge")
     @LoginRequire

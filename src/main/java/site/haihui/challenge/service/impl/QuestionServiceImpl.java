@@ -95,6 +95,14 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Override
     public QuestionListVO challengeQuestion(Integer uid, Integer roundId, Integer questionId, Integer category) {
+        Question directQuestion = null;
+        if (questionId > 0) {
+            // A poster or reminder must open exactly its active question, even if an older cache survives a hide.
+            directQuestion = questionMapper.selectById(questionId);
+            if (directQuestion == null || !Integer.valueOf(1).equals(directQuestion.getStatus())) {
+                throw new BadRequestException("题目不存在或已下架");
+            }
+        }
         Round round;
         List<Question> questions = new ArrayList<>();
         if (!Numbers.isBlank(roundId)) {
@@ -105,10 +113,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         } else {
             round = newRound(uid);
             if (questionId > 0) {
-                Question question = getQustionById(questionId);
-                if (question != null) {
-                    questions.add(question);
-                }
+                questions.add(directQuestion);
             }
             // 设置本轮3次复活机会
             setRoundReliveTimesCache(uid, round.getId());
