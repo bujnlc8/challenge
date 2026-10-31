@@ -1,0 +1,6 @@
+*
+!Dockerfile
+!Dockerfile.recovery
+!target/
+target/*
+!target/challenge.jar

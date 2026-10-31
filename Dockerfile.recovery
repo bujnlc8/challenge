@@ -1,0 +1,12 @@
+ARG JAVA_IMAGE=eclipse-temurin:8-jre
+FROM ${JAVA_IMAGE}
+ARG SOURCE_SHA=unknown
+LABEL org.opencontainers.image.source="https://github.com/bujnlc8/challenge" \
+      org.opencontainers.image.revision="${SOURCE_SHA}"
+WORKDIR /app
+ENV TZ=Asia/Shanghai
+COPY target/challenge.jar /app/challenge.jar
+RUN mkdir -p /app/log && chown -R 10001:10001 /app
+USER 10001:10001
+EXPOSE 8180
+ENTRYPOINT ["java", "-Xms64m", "-Xmx384m", "-jar", "/app/challenge.jar"]
