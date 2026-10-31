@@ -10,6 +10,7 @@
 
 ```bash
 mysql --default-character-set=utf8mb4 -h HOST -P PORT -u USER -p challenge < sql/daily-challenge.sql
+mysql --default-character-set=utf8mb4 -h HOST -P PORT -u USER -p challenge < sql/daily-activity.sql
 ```
 
 然后部署并重启后端。该脚本可重复执行，不会为现有用户自动增加订阅次数。

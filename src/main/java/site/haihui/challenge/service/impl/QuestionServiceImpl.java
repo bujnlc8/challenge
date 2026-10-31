@@ -20,6 +20,7 @@ import site.haihui.challenge.common.constant.CoinSource;
 import site.haihui.challenge.common.constant.Config;
 import site.haihui.challenge.common.exception.BadRequestException;
 import site.haihui.challenge.common.exception.CommonException;
+import site.haihui.challenge.daily.DailyActivityService;
 import site.haihui.challenge.entity.Question;
 import site.haihui.challenge.entity.Round;
 import site.haihui.challenge.entity.RoundDetail;
@@ -81,6 +82,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Autowired
     private RedisLock redisLock;
+
+    @Autowired
+    private DailyActivityService dailyActivityService;
 
     @Autowired
     private IRedisService<Integer> redisServiceInt;
@@ -249,6 +253,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             throw new CommonException("本轮已经结束");
         }
         Date now = new Date();
+        Question activityQuestion = null;
         String toast = "";
         boolean isWrong = true;
         Integer grade = coinRecordService.getGrade(uid);
@@ -262,6 +267,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             round.setIsOver(1);
         } else {
             Question question = getQustionById(questionId);
+            activityQuestion = question;
             if (question.getAnswer().equals(answer)) {
                 res.setResult(1);
                 if (roundDetail.getScore() == 0
@@ -331,7 +337,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         roundDetail.setUpdateTime(now);
         Integer costSecond = round.getTimeout() - countDown;
         roundDetail.setCostSecond(costSecond <= 0 ? 1 : costSecond);
-        roundDetailMapper.updateById(roundDetail);
+        int savedAnswerRows = roundDetailMapper.updateById(roundDetail);
         if (isWrong) {
             insertWrongQuestionBook(uid, questionId, answer, 1);
         }
@@ -351,6 +357,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         shareService.incrCachedQuestionNum(uid, 1, 1);
         redisLock.unlock(cacheKey, token);
         res.setToast(toast);
+        if (savedAnswerRows > 0) {
+            dailyActivityService.recordChallenge(uid, roundDetail.getId(), questionId, answer, timeout,
+                    activityQuestion == null ? null : activityQuestion.getOptions());
+        }
         return res;
     }
 
@@ -658,6 +668,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         if (redisService.sSize(shareService.getCacheKey(uid, 7)) >= 300) {
             coinRecordService.operateCoin(uid, CoinSource.TRAIN, 0, 0);
         }
+        dailyActivityService.recordPractice(uid, questionId, answer, question.getOptions());
         return res;
     }
 

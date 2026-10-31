@@ -11,14 +11,23 @@ import site.haihui.challenge.common.auth.UserContext;
 import site.haihui.challenge.common.constant.AppType;
 import site.haihui.challenge.common.exception.BaseException;
 import site.haihui.challenge.common.response.ResponseResult;
+import site.haihui.challenge.daily.DailyActivityService;
 import site.haihui.challenge.daily.DailyChallengeService;
 
 @RestController
 @RequestMapping("/daily-challenge")
 public class DailyChallengeController {
     private final DailyChallengeService service;
-    public DailyChallengeController(DailyChallengeService service) {
+    private final DailyActivityService activityService;
+    public DailyChallengeController(DailyChallengeService service, DailyActivityService activityService) {
         this.service = service;
+        this.activityService = activityService;
+    }
+
+    @GetMapping("/activity")
+    @LoginRequire
+    public ResponseResult<Map<String, Object>> activity(@RequestParam(defaultValue = "365") Integer days) {
+        return ResponseResult.success(activityService.activity(UserContext.getCurrentUser().getId(), days));
     }
 
     private int wechatUid() {
