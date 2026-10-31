@@ -110,6 +110,7 @@ class QuestionActivityIntegrationTest {
         detail.setId(502);
         detail.setScore(0);
         detail.setCostSecond(0);
+        detail.setAnswer(0);
         round.setIsOver(0);
         data.transactions.execute(status -> {
             core.checkAnswer(1, 77, 20, 25, 0, 2);
@@ -136,6 +137,29 @@ class QuestionActivityIntegrationTest {
         core.checkTrainingQuestion(1, 21, 1);
         assertEquals(2, count());
     }
+    @Test
+    void prelaunchAnsweredChallengeRetryIsNotInventedAsNewActivity() {
+        detail.setAnswer(1);
+        detail.setScore(20);
+        detail.setCostSecond(5);
+        core.checkAnswer(1, 77, 20, 25, 0, 1);
+        assertEquals(0, count());
+    }
+
+    @Test
+    void prelaunchAnsweredPracticeRetryIsNotInventedAsNewActivity() {
+        when(share.isQuesetionSet(1, 20, 7)).thenReturn(true);
+        core.checkTrainingQuestion(1, 20, 1);
+        assertEquals(0, count());
+    }
+
+    @Test
+    void priorPracticeActivityLookupFailureCannotFailAcceptedAnswer() {
+        when(share.isQuesetionSet(1, 20, 7)).thenThrow(new IllegalStateException("analytics lookup unavailable"));
+        assertDoesNotThrow(() -> core.checkTrainingQuestion(1, 20, 1));
+        assertEquals(0, count());
+    }
+
     @Test
     void missingPersistedUpdateCannotCreateContribution() {
         when(details.updateById(any(RoundDetail.class))).thenReturn(0);

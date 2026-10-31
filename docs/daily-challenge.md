@@ -57,7 +57,7 @@
 
 返回 `{start_date,end_date,days:[{date,count}],total_count,active_days,history_start_date,tracking_started_at}`。所有日期与展示时间均按 Asia/Shanghai。`count` 是该日期已记录的真实有效答题数；正确、错误都计数，查看题目、跳过、超时、未提交、无效选项、未授权训练题、未保存成功的挑战明细不计数。
 
-新迁移新增两张表：`daily_activity` 事件账本与 `daily_activity_tracking` 单行启用边界；时间用 epoch 存储，不依赖数据库会话时区。挑战通过 `round_detail.id` 去重；训练通过上海日期与题号去重，同一道训练题同一账号一天计一次，保持已有每日已答集合口径；新轮次或次日再答可再次计数。
+新迁移新增两张表：`daily_activity` 事件账本与 `daily_activity_tracking` 单行启用边界；时间用 epoch 存储，不依赖数据库会话时区。挑战通过 `round_detail.id` 去重；训练通过上海日期与题号去重，同一道训练题同一账号一天计一次，保持已有每日已答集合口径；新轮次或次日再答可再次计数。仅在挑战原明细尚未作答、训练原每日已答集合尚无该题时注册新事件，因此上线前已答题目的 HTTP 重试不会被误造为上线后的新贡献。训练历史集合查询故障只跳过该次统计，不增加答题失败。
 
 旧挑战明细记录与训练 Redis/错题本不能完整还原相同口径，因此不推测历史，也不对旧挑战回填后再叠加新事件。此功能从迁移保存的 `tracking_started_at` 开始记录后续答题；`history_start_date` 之前返回的补齐值必须视为“未开始记录”，不能称为真实零次。前端可显示灰色未记录状态。
 
